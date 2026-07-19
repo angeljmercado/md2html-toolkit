@@ -1,0 +1,58 @@
+<style>
+/* Hover anchor links on headings */
+.hanchor {
+  margin-left: .4rem;
+  font-size: .8em;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity .15s;
+  color: #0969da;
+}
+h1:hover .hanchor, h2:hover .hanchor, h3:hover .hanchor,
+.hanchor:focus { opacity: 1; }
+/* Current section highlighted in the outline (scroll-spy) */
+nav#TOC a.active { font-weight: 600; color: #0969da; background: #d0d7de55; }
+@media (prefers-color-scheme: dark) {
+  .hanchor { color: #bd93f9; }
+  nav#TOC a.active { color: #bd93f9; background: #1a1a22; }
+}
+@media print { .hanchor { display: none; } }
+</style>
+<script>
+(function () {
+  var headings = Array.prototype.slice.call(
+    document.querySelectorAll("h1[id], h2[id], h3[id]"));
+
+  /* Anchor link (¶) on each heading */
+  headings.forEach(function (h) {
+    var a = document.createElement("a");
+    a.className = "hanchor";
+    a.href = "#" + h.id;
+    a.textContent = "¶";
+    a.setAttribute("aria-label", "Link to this section");
+    h.appendChild(a);
+  });
+
+  /* Scroll-spy: highlight the outline entry for the section in view */
+  var links = {};
+  document.querySelectorAll("nav#TOC a").forEach(function (a) {
+    links[decodeURIComponent(a.hash.slice(1))] = a;
+  });
+  var current = null;
+  function spy() {
+    var active = null;
+    for (var i = 0; i < headings.length; i++) {
+      if (headings[i].getBoundingClientRect().top <= 90) active = headings[i];
+      else break;
+    }
+    if (active === current) return;
+    current = active;
+    document.querySelectorAll("nav#TOC a.active").forEach(function (a) {
+      a.classList.remove("active");
+    });
+    if (active && links[active.id]) links[active.id].classList.add("active");
+  }
+  document.addEventListener("scroll", spy, { passive: true });
+  spy();
+})();
+</script>

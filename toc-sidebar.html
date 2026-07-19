@@ -1,0 +1,97 @@
+<style>
+/* Collapsible outline sidebar (styles pandoc's nav#TOC) */
+nav#TOC {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 270px;
+  overflow-y: auto;
+  padding: 3.2rem 1rem 2rem;
+  background: #f6f8fa;
+  border-right: 1px solid #d0d7de;
+  transform: translateX(-100%);
+  transition: transform .22s ease;
+  z-index: 100;
+  font-size: .88rem;
+}
+body.toc-open nav#TOC { transform: none; }
+nav#TOC::before {
+  content: "Outline";
+  display: block;
+  font-weight: 600;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #57606a;
+  margin-bottom: .6rem;
+}
+nav#TOC ul { list-style: none; padding-left: 0; margin: 0; }
+nav#TOC ul ul { padding-left: .9rem; }
+nav#TOC li { margin: .1rem 0; }
+nav#TOC a {
+  display: block;
+  padding: .25rem .5rem;
+  border-radius: 5px;
+  color: inherit;
+  text-decoration: none;
+  line-height: 1.35;
+}
+nav#TOC a:hover { background: #d0d7de55; }
+
+#toc-toggle {
+  position: fixed;
+  top: .7rem; left: .7rem;
+  z-index: 101;
+  width: 2.2rem; height: 2.2rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  background: #ffffff;
+  color: inherit;
+}
+#toc-toggle:hover { background: #f6f8fa; }
+
+/* On wide screens, push the content over while the panel is open */
+@media (min-width: 1100px) {
+  body.toc-open { margin-left: calc(290px + max(0px, (100% - 290px - 46rem) / 2)); }
+}
+
+@media (prefers-color-scheme: dark) {
+  nav#TOC { background: #0a0a0d; border-color: #1f1f26; }
+  nav#TOC::before { color: #bd93f9; }
+  nav#TOC a { color: #b3b3bd; }
+  nav#TOC a:hover { background: #1a1a22; color: #f8f8f2; }
+  #toc-toggle { background: #000000; border-color: #26262e; color: #b3b3bd; }
+  #toc-toggle:hover { background: #0d0d12; color: #bd93f9; }
+}
+
+@media print {
+  nav#TOC, #toc-toggle { display: none; }
+  body.toc-open { margin-left: auto; }
+}
+</style>
+<script>
+(function () {
+  var toc = document.getElementById("TOC");
+  if (!toc) return;
+  var btn = document.createElement("button");
+  btn.id = "toc-toggle";
+  btn.setAttribute("aria-label", "Toggle outline");
+  btn.textContent = "☰"; /* ☰ */
+  document.body.appendChild(btn);
+  function setOpen(open) {
+    document.body.classList.toggle("toc-open", open);
+    btn.textContent = open ? "×" : "☰"; /* × / ☰ */
+  }
+  btn.addEventListener("click", function () {
+    setOpen(!document.body.classList.contains("toc-open"));
+  });
+  /* Start open on wide screens, collapsed on narrow ones */
+  setOpen(window.innerWidth >= 1100);
+  /* On narrow screens, close the panel after picking a section */
+  toc.addEventListener("click", function (e) {
+    if (e.target.tagName === "A" && window.innerWidth < 1100) setOpen(false);
+  });
+})();
+</script>

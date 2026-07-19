@@ -1,0 +1,87 @@
+:root { color-scheme: light dark; }
+html { scroll-behavior: smooth; }
+h1, h2, h3 { scroll-margin-top: 3.5rem; }
+.doc-footer {
+  margin-top: 4rem;
+  padding-top: 1rem;
+  border-top: 1px solid #d0d7de;
+  font-size: .8rem;
+  color: #57606a;
+  text-align: center;
+}
+body {
+  font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+  color: #1f2328;
+  background: #ffffff;
+}
+h1, h2, h3 { line-height: 1.25; margin-top: 2em; }
+h1 { font-size: 1.9rem; border-bottom: 2px solid #d0d7de; padding-bottom: .4rem; }
+h2 { font-size: 1.4rem; border-bottom: 1px solid #d0d7de; padding-bottom: .3rem; }
+h3 { font-size: 1.1rem; }
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .9em;
+  background: #f6f8fa;
+  border-radius: 4px;
+  padding: .15em .35em;
+}
+pre {
+  background: #f6f8fa;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: .9rem 1rem;
+  overflow-x: auto;
+}
+pre code { background: none; padding: 0; font-size: .85rem; }
+/* Pandoc emits `.sourceCode { overflow: visible }` + scrolling on the
+   outer div.sourceCode, which lets code slide out of the pre's styled
+   box. Keep the scrollbar on the pre itself so its background always
+   covers the code. */
+div.sourceCode { overflow: visible; }
+pre.sourceCode, pre { overflow-x: auto; }
+ul, ol { padding-left: 1.6rem; }
+li { margin: .25rem 0; }
+input[type="checkbox"] { margin-right: .45rem; }
+strong { font-weight: 600; }
+a { color: #0969da; }
+@media (prefers-color-scheme: dark) {
+  /* Pitch-black neutral base; purple reserved for accents
+     (Dracula-inspired palette) */
+  body { color: #e8e8e8; background: #000000; }
+  h1 { color: #f8f8f2; border: none; padding-bottom: 0; }
+  h1::after { content: ""; display: block; width: 3.5rem; height: 3px;
+              background: #bd93f9; border-radius: 2px; margin-top: .5rem; }
+  h2 { color: #f8f8f2; border-color: #1f1f26; }
+  h3 { color: #e8e8e8; }
+  code, pre { background: #0d0d12; }
+  pre { border-color: #26262e; border-radius: 10px; }
+  code { color: #e8e8e8; }
+  a { color: #bd93f9; }
+  a:hover { color: #d6bcfa; }
+  strong { color: #ffffff; }
+  .doc-footer { border-color: #1f1f26; color: #7a7a85; }
+  /* Pandoc's default syntax-highlight colors are made for light
+     backgrounds (dark navy variables etc.) — override with a
+     GitHub-dark-style palette so commands stay readable. */
+  /* Dracula syntax palette */
+  code span.kw, code span.cf { color: #ff79c6; }          /* keywords: sudo, if */
+  code span.fu { color: #50fa7b; }                        /* function names */
+  code span.st, code span.vs, code span.ch { color: #f1fa8c; } /* strings */
+  code span.va { color: #bd93f9; }                        /* $VARIABLES */
+  code span.dv, code span.bn, code span.fl { color: #bd93f9; } /* numbers */
+  code span.bu, code span.at { color: #8be9fd; }          /* builtins, attrs */
+  code span.ot, code span.sc { color: #8be9fd; }          /* other tokens */
+  code span.op { color: #f8f8f2; }                        /* operators | > */
+  code span.co, code span.an, code span.cv { color: #6272a4; font-style: italic; } /* comments */
+  code span.pp { color: #ffb86c; }                        /* preprocessor */
+  code span.ex { color: #f8f8f2; }                        /* commands */
+  code span.er, code span.al { color: #ff5555; font-weight: bold; }
+}
+@media print {
+  body { max-width: none; color: #000; background: #fff; }
+  pre { white-space: pre-wrap; }
+}

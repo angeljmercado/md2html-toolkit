@@ -1,0 +1,72 @@
+<style>
+/* Copy-to-clipboard button on every code block. The button sits on a
+   non-scrolling wrapper (div.sourceCode or an added .copy-holder), not
+   on the pre — inside the scrolling pre it would slide away with the
+   code when scrolled horizontally. */
+div.sourceCode, .copy-holder { position: relative; }
+.copy-btn {
+  position: absolute;
+  top: .45rem; right: .45rem;
+  padding: .25rem .55rem;
+  font-size: .75rem;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #57606a;
+  opacity: 0;
+  transition: opacity .15s;
+}
+div.sourceCode:hover .copy-btn, .copy-holder:hover .copy-btn,
+.copy-btn:focus { opacity: 1; }
+.copy-btn:hover { background: #f3f4f6; color: #1f2328; }
+@media (prefers-color-scheme: dark) {
+  .copy-btn { background: #14141a; border-color: #26262e; color: #b3b3bd; }
+  .copy-btn:hover { background: #1f1f26; color: #bd93f9; }
+}
+@media print { .copy-btn { display: none; } }
+</style>
+<script>
+(function () {
+  document.querySelectorAll("pre").forEach(function (pre) {
+    var code = pre.querySelector("code");
+    if (!code) return;
+    /* Anchor the button to a non-scrolling container: pandoc's
+       div.sourceCode when present, otherwise wrap the bare pre. */
+    var holder = pre.parentElement;
+    if (!(holder && holder.classList.contains("sourceCode"))) {
+      holder = document.createElement("div");
+      holder.className = "copy-holder";
+      pre.parentNode.insertBefore(holder, pre);
+      holder.appendChild(pre);
+    }
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "copy-btn";
+    btn.textContent = "Copy";
+    btn.addEventListener("click", function () {
+      var text = code.innerText;
+      function done() {
+        btn.textContent = "Copied!";
+        setTimeout(function () { btn.textContent = "Copy"; }, 1500);
+      }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done);
+      } else {
+        /* Fallback for contexts where the Clipboard API is unavailable */
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        done();
+      }
+    });
+    holder.appendChild(btn);
+  });
+})();
+</script>
