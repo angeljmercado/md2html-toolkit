@@ -1,0 +1,5 @@
+# Generated build output — only the toolkit's own assets are tracked
+*.html
+!toc-sidebar.html
+!copy-code.html
+!page-extras.html
