@@ -11,10 +11,10 @@ HTML when I want a version that is easy to read and share.
 
 - Collapsible outline sidebar with the doc's headers, highlights the
   section you are reading
-- Dark theme (pitch black, Dracula-style accents) and light theme,
-  follows the system setting
-- Copy button on every code block
-- Anchor links on headers for sharing direct links to a section
+- Dark theme (pitch black, magenta accents) and light theme, follows
+  the system setting
+- Copy button on every code block, Laserwave-style magenta syntax
+  colors in dark mode
 - "Generated <date>" footer so you can tell when a build is stale
 - Print-friendly — use the browser's Print > Save as PDF for a PDF
 
@@ -38,6 +38,10 @@ Viewers need nothing — just a browser.
 The script finds its own assets, so the toolkit folder can live anywhere.
 The browser-tab title comes from the doc's first `# H1`.
 
+Every code block gets syntax colors: unlabeled blocks and plain-text
+labels (` ```text `, ` ```console `, ...) are highlighted as bash;
+label a block (` ```yaml `, ` ```python `) for another language.
+
 Verify the output is fully self-contained (must print 0):
 
 ```bash
@@ -52,7 +56,8 @@ grep -cE '(href|src)="(https?:|[^#"])' mydoc.html
 | `doc-style.css` | Layout, light/dark theme, syntax colors |
 | `toc-sidebar.html` | Outline sidebar |
 | `copy-code.html` | Copy buttons |
-| `page-extras.html` | Header anchor links, scroll highlighting |
+| `default-lang.lua` | Forces syntax colors on every code block (bash by default) |
+| `page-extras.html` | Scroll highlighting in the outline |
 | `html_context.md` | Full reference: how it works, theme colors, customization, gotchas |
 
 Markdown stays the source of truth. Rebuild after every edit — the HTML
