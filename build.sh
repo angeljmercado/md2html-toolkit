@@ -31,6 +31,7 @@ printf '<footer class="doc-footer">Generated %s from %s</footer>\n' \
 
 pandoc "$SRC" \
   --standalone --embed-resources \
+  --lua-filter "$TOOLKIT/default-lang.lua" \
   --css "$TOOLKIT/doc-style.css" \
   --include-after-body "$TOOLKIT/toc-sidebar.html" \
   --include-after-body "$TOOLKIT/copy-code.html" \
