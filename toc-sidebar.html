@@ -1,13 +1,14 @@
 <style>
-/* Collapsible outline sidebar (styles pandoc's nav#TOC) */
+/* Collapsible outline sidebar (styles pandoc's nav#TOC). Colors come
+   from the design tokens in doc-style.css. */
 nav#TOC {
   position: fixed;
   top: 0; left: 0; bottom: 0;
   width: 270px;
   overflow-y: auto;
   padding: 3.2rem 1rem 2rem;
-  background: #f6f8fa;
-  border-right: 1px solid #d0d7de;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
   transform: translateX(-100%);
   transition: transform .22s ease;
   z-index: 100;
@@ -21,7 +22,7 @@ nav#TOC::before {
   font-size: .8rem;
   text-transform: uppercase;
   letter-spacing: .06em;
-  color: #57606a;
+  color: var(--fg-muted);
   margin-bottom: .6rem;
 }
 nav#TOC ul { list-style: none; padding-left: 0; margin: 0; }
@@ -31,11 +32,11 @@ nav#TOC a {
   display: block;
   padding: .25rem .5rem;
   border-radius: 5px;
-  color: inherit;
+  color: var(--fg-soft);
   text-decoration: none;
   line-height: 1.35;
 }
-nav#TOC a:hover { background: #d0d7de55; }
+nav#TOC a:hover { background: var(--hover-bg); color: var(--fg); }
 
 #toc-toggle {
   position: fixed;
@@ -45,12 +46,12 @@ nav#TOC a:hover { background: #d0d7de55; }
   font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: #ffffff;
-  color: inherit;
+  background: var(--bg);
+  color: var(--fg-soft);
 }
-#toc-toggle:hover { background: #f6f8fa; }
+#toc-toggle:hover { background: var(--surface); color: var(--accent); }
 
 /* On wide screens, push the content over while the panel is open */
 @media (min-width: 1100px) {
@@ -58,12 +59,8 @@ nav#TOC a:hover { background: #d0d7de55; }
 }
 
 @media (prefers-color-scheme: dark) {
-  nav#TOC { background: #0a0a0d; border-color: #1f1f26; }
-  nav#TOC::before { color: #bd93f9; }
-  nav#TOC a { color: #b3b3bd; }
-  nav#TOC a:hover { background: #1a1a22; color: #f8f8f2; }
-  #toc-toggle { background: #000000; border-color: #26262e; color: #b3b3bd; }
-  #toc-toggle:hover { background: #0d0d12; color: #bd93f9; }
+  /* Magenta "Outline" label is a deliberate dark-mode accent */
+  nav#TOC::before { color: var(--accent); }
 }
 
 @media print {
