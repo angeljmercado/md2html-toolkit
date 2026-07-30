@@ -16,7 +16,10 @@ source of truth — regenerate the HTML after every edit.
   - `toc-sidebar.html` — collapsible outline panel (with scroll-spy
     highlight of the current section)
   - `copy-code.html` — Copy button on code blocks
-  - `page-extras.html` — hover ¶ anchor links on headings, scroll-spy
+  - `default-lang.lua` — pandoc filter: every code block gets syntax
+    colors — unlabeled and plain-text labels (`text`, `console`, ...)
+    are highlighted as bash; real language labels keep their own
+  - `page-extras.html` — scroll-spy highlight in the outline
 
 The assets are embedded into the HTML at build time; the finished file
 never references them again.
@@ -50,32 +53,53 @@ grep -cE '(href|src)="(https?:|[^#"])' <name>.html
 | Sidebar width (`270px`) | `toc-sidebar.html` (nav width + margin calc) |
 | Sidebar auto-open breakpoint (`1100px`) | `toc-sidebar.html` (media query + JS) |
 | Outline depth | `--toc-depth=N` |
-| Colors | `doc-style.css` (dark mode = the `@media` block) |
+| Colors | design tokens at the top of `doc-style.css` (two `:root` blocks: light, then dark inside `@media`) — all assets read them via `var(--…)` |
 
 ## Dark theme
 
-Pitch-black neutral surfaces with purple reserved for accents; syntax
-colors are the **Dracula** palette (draculatheme.com). The principle: never
-tint backgrounds or body text purple — purple only appears in small,
-deliberate places. Light mode is a separate GitHub-light-ish palette and
-follows the system theme automatically.
+Pitch-black neutral surfaces with magenta reserved for accents; syntax
+colors are the **Laserwave** palette (github.com/Jaredk3nt/laserwave).
+The principle: never tint code backgrounds or body text — magenta
+appears in small, deliberate places (links, H1 bar, "Outline" label,
+active TOC entry, commands in code) plus a faint magenta tint on
+interactive surfaces (buttons, table headers, hovers). Roughly: ~90%
+neutral black/white, ~10% magenta family; yellow/violet/aqua appear only
+inside code blocks. Light mode is a separate GitHub-light-ish palette
+with CSS `darkmagenta` as its accent, and follows the system theme
+automatically.
 
-Surfaces and text (all in `doc-style.css` dark block; sidebar/copy-button
-variants in their own assets):
+All colors are CSS custom properties in the two `:root` blocks at the top
+of `doc-style.css`; the sidebar/copy-button/extras assets reference them
+with `var(--…)`. Dark values:
 
-| Role | Color |
-|------|-------|
-| Page background | `#000000` |
-| Code block / sidebar background | `#0d0d12` / `#0a0a0d` |
-| Borders | `#26262e` / `#1f1f26` |
-| Body text / headings | `#e8e8e8` / `#f8f8f2` |
-| Accent purple (links, H1 underline bar, `$VARIABLES`, "Outline" label, hovers) | `#bd93f9` |
+| Token | Role | Color |
+|-------|------|-------|
+| `--bg` | Page background | `#000000` |
+| `--surface` | Code blocks, sidebar, zebra rows (neutral) | `#0d0d12` |
+| `--surface-2` / `--hover-bg` | Buttons, table headers / hovers (magenta-tinted) | `#1f1320` / `#2a1526` |
+| `--border` / `--border-soft` | Borders | `#26262e` / `#1f1f26` |
+| `--fg` | Body text and headings | `#f8f8f2` |
+| `--fg-soft` / `--fg-muted` | Sidebar links, blockquotes / footer, captions, language badge | `#b3b3bd` / `#7a7a85` |
+| `--accent` / `--accent-hover` | Magenta (links, H1 underline bar, "Outline" label, hovers) | `#eb64b9` / `#ff52bf` |
 
-Dracula syntax mapping (pandoc token classes): keywords `.kw/.cf`
-`#ff79c6` pink · functions `.fu` `#50fa7b` green · strings `.st` `#f1fa8c`
-yellow · variables/numbers `.va/.dv` `#bd93f9` purple · builtins `.bu/.ot`
-`#8be9fd` cyan · preprocessor `.pp` `#ffb86c` orange · comments `.co`
-`#6272a4` blue-gray italic · errors `.er/.al` `#ff5555` red.
+Laserwave syntax mapping (pandoc token classes): functions/commands/flags
+`.fu/.ex/.at` `#eb64b9` hot pink · keywords/imports `.kw/.cf/.im`
+`#40b4c4` maximum blue · strings `.st/.vs/.ch/.ss` `#b4dce7` powder blue
+· numbers/constants `.dv/.bn/.fl/.cn` `#b381c5` african violet · types
+`.dt` violet italic · variables `.va` `#ffffff` white ·
+builtins/preprocessor `.bu/.pp` `#ffe261` mustard · operators
+`.op/.ot/.sc` `#74dfc4` pearl aqua · comments/docs
+`.co/.an/.cv/.do/.in/.re/.wa` `#91889b` old lavender italic · errors
+`.er/.al` `#ff5555` red. A `code span` catch-all makes any unmapped class
+fall back to bright foreground instead of pandoc's dark-on-dark defaults.
+Note: true CSS `darkmagenta` (`#8b008b`) is too dark to read on black,
+so dark mode uses Laserwave's magenta for text accents; `darkmagenta`
+is the light-mode accent instead.
+
+Beyond code: tables get borders, header background, zebra rows, and
+horizontal scroll when wide; blockquotes get a purple left border; images
+are capped at `max-width: 100%`; `kbd`, `hr`, figures, and definition
+lists are styled.
 
 ## Gotchas (why the assets look the way they do)
 
