@@ -7,8 +7,8 @@
   --fg: #1f2328;
   --fg-muted: #57606a;      /* footer, captions */
   --fg-soft: #57606a;       /* secondary UI text (sidebar links, buttons) */
-  --surface: #f6f8fa;       /* code blocks, sidebar, table zebra */
-  --surface-2: #eaeef2;     /* buttons, table header */
+  --surface: #f6f8fa;       /* code blocks, sidebar, table headers */
+  --surface-2: #eaeef2;     /* buttons */
   --border: #d0d7de;
   --border-soft: #d8dee4;
   --hover-bg: #d0d7de55;
@@ -20,7 +20,7 @@
   /* Pitch-black neutral base; magenta reserved for accents
      (Laserwave palette, github.com/Jaredk3nt/laserwave).
      Code backgrounds stay neutral; only interactive surfaces
-     (buttons, table headers, hovers) carry a faint magenta tint. */
+     (buttons, hovers) carry a faint magenta tint. */
   :root {
     --bg: #000000;
     --fg: #f8f8f2;
@@ -82,16 +82,36 @@ pre code { background: none; border: none; padding: 0; font-size: .85rem; }
 div.sourceCode { overflow: visible; }
 pre.sourceCode, pre { overflow-x: auto; }
 table {
-  border-collapse: collapse;
-  margin: 1rem 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.25rem 0;
   display: block;            /* lets wide tables scroll instead of overflowing */
   width: max-content;
   max-width: 100%;
   overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: .92rem;
 }
-th, td { border: 1px solid var(--border); padding: .4rem .75rem; }
-th { background: var(--surface-2); }
-tbody tr:nth-child(even) { background: var(--surface); }
+th, td {
+  padding: .65rem 1rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-soft);
+}
+tbody tr:last-child td { border-bottom: 0; }
+th {
+  background: var(--surface);
+  color: var(--fg-soft);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+tbody tr:hover td { background: var(--hover-bg); }
+th:first-child { border-top-left-radius: 9px; }
+th:last-child { border-top-right-radius: 9px; }
 blockquote {
   margin: 1rem 0;
   padding: .1rem 1rem;
