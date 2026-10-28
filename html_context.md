@@ -6,20 +6,11 @@ source of truth — regenerate the HTML after every edit.
 
 ## Requirements
 
-- **pandoc** (`apt/dnf install pandoc`) — the build machine's only
-  dependency; viewers of the generated HTML need nothing
-- This **`html_toolkit/`** folder — the whole toolkit, self-contained for
-  backup:
-  - `build.sh` — the build command; finds its own assets, so the folder
-    can live anywhere
-  - `doc-style.css` — layout, light/dark theme, dark-mode syntax palette
-  - `toc-sidebar.html` — collapsible outline panel (with scroll-spy
-    highlight of the current section)
-  - `copy-code.html` — Copy button on code blocks
-  - `default-lang.lua` — pandoc filter: every code block gets syntax
-    colors — unlabeled and plain-text labels (`text`, `console`, ...)
-    are highlighted as bash; real language labels keep their own
-  - `page-extras.html` — scroll-spy highlight in the outline
+- **pandoc** 3.1.1 or newer (`apt/dnf install pandoc`) — the build
+  machine's only dependency; viewers of the generated HTML need nothing
+- This **`md2html-toolkit/`** folder, self-contained (file list in the
+  README). `build.sh` finds its own assets, so the folder can live
+  anywhere.
 
 The assets are embedded into the HTML at build time; the finished file
 never references them again.
@@ -27,8 +18,8 @@ never references them again.
 ## Build
 
 ```bash
-/path/to/html_toolkit/build.sh <name>.md            # output: <name>.html
-/path/to/html_toolkit/build.sh <name>.md out.html   # custom output path
+/path/to/md2html-toolkit/build.sh <name>.md            # output: outputs/<name>.html
+/path/to/md2html-toolkit/build.sh <name>.md out.html   # custom output path
 ```
 
 The script derives the browser-tab title from the doc's first H1 and stamps
@@ -49,7 +40,7 @@ grep -cE '(href|src)="(https?:|[^#"])' <name>.html
 
 | What | Where |
 |------|-------|
-| Content width (`46rem`) | `body` in `doc-style.css` |
+| Content width (`--page-width`, `75rem`) | `:root` in `doc-style.css` |
 | Sidebar width (`270px`) | `toc-sidebar.html` (nav width + margin calc) |
 | Sidebar auto-open breakpoint (`1100px`) | `toc-sidebar.html` (media query + JS) |
 | Outline depth | `--toc-depth=N` |
@@ -62,7 +53,7 @@ colors are the **Laserwave** palette (github.com/Jaredk3nt/laserwave).
 The principle: never tint code backgrounds or body text — magenta
 appears in small, deliberate places (links, H1 bar, "Outline" label,
 active TOC entry, commands in code) plus a faint magenta tint on
-interactive surfaces (buttons, table headers, hovers). Roughly: ~90%
+interactive surfaces (buttons, hovers). Roughly: ~90%
 neutral black/white, ~10% magenta family; yellow/violet/aqua appear only
 inside code blocks. Light mode is a separate GitHub-light-ish palette
 with CSS `darkmagenta` as its accent, and follows the system theme
@@ -75,8 +66,8 @@ with `var(--…)`. Dark values:
 | Token | Role | Color |
 |-------|------|-------|
 | `--bg` | Page background | `#000000` |
-| `--surface` | Code blocks, sidebar, zebra rows (neutral) | `#0d0d12` |
-| `--surface-2` / `--hover-bg` | Buttons, table headers / hovers (magenta-tinted) | `#1f1320` / `#2a1526` |
+| `--surface` | Code blocks, sidebar, table headers (neutral) | `#0d0d12` |
+| `--surface-2` / `--hover-bg` | Buttons / hovers (magenta-tinted) | `#1f1320` / `#2a1526` |
 | `--border` / `--border-soft` | Borders | `#26262e` / `#1f1f26` |
 | `--fg` | Body text and headings | `#f8f8f2` |
 | `--fg-soft` / `--fg-muted` | Sidebar links, blockquotes / footer, captions, language badge | `#b3b3bd` / `#7a7a85` |
@@ -96,8 +87,8 @@ Note: true CSS `darkmagenta` (`#8b008b`) is too dark to read on black,
 so dark mode uses Laserwave's magenta for text accents; `darkmagenta`
 is the light-mode accent instead.
 
-Beyond code: tables get borders, header background, zebra rows, and
-horizontal scroll when wide; blockquotes get a purple left border; images
+Beyond code: tables get rounded borders, row dividers, uppercase headers,
+a hover highlight, and horizontal scroll when wide; blockquotes get a purple left border; images
 are capped at `max-width: 100%`; `kbd`, `hr`, figures, and definition
 lists are styled.
 
