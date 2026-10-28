@@ -14,6 +14,7 @@
   --hover-bg: #d0d7de55;
   --accent: #8b008b;
   --accent-hover: #6a006a;
+  --page-width: 75rem;      /* width of the content column */
 }
 @media (prefers-color-scheme: dark) {
   /* Pitch-black neutral base; magenta reserved for accents
@@ -47,7 +48,7 @@ h1, h2, h3 { scroll-margin-top: 3.5rem; }
 body {
   font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   line-height: 1.6;
-  max-width: 46rem;
+  max-width: var(--page-width);
   margin: 0 auto;
   padding: 2rem 1.25rem 4rem;
   color: var(--fg);
