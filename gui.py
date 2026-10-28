@@ -56,7 +56,11 @@ def build(name, data):
             return False, f"Build timed out after {BUILD_TIMEOUT}s."
         if r.returncode != 0 or not out.is_file():
             return False, (r.stderr or r.stdout or "Build failed.").strip()[-2000:]
-        return True, out.read_bytes()
+        html = out.read_bytes()
+    # Save a copy in outputs/, same as build.sh.
+    (TOOLKIT / "outputs").mkdir(exist_ok=True)
+    (TOOLKIT / "outputs" / f"{stem}.html").write_bytes(html)
+    return True, html
 
 
 class Handler(BaseHTTPRequestHandler):

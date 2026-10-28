@@ -5,3 +5,8 @@
 !page-extras.html
 !cytoscape-runtime.html
 !gui.html
+
+# Local only
+outputs/
+examples/
+__pycache__/

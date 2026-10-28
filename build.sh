@@ -1,6 +1,6 @@
 #!/bin/bash
 # build.sh — turn a Markdown doc into one self-contained themed HTML file.
-# Usage: ./build.sh <doc.md> [output.html]
+# Usage: ./build.sh <doc.md> [output.html]   (default: outputs/<doc>.html)
 # Finds its own assets, so the toolkit folder can live anywhere.
 set -euo pipefail
 
@@ -31,7 +31,13 @@ if command -v cygpath >/dev/null 2>&1; then
 fi
 
 SRC="$1"
-OUT="${2:-${SRC%.md}.html}"
+if [ $# -ge 2 ]; then
+  OUT="$2"
+else
+  BASE="$(basename "$SRC")"; BASE="${BASE%.md}"; BASE="${BASE%.markdown}"
+  mkdir -p "$TOOLKIT/outputs"
+  OUT="$TOOLKIT/outputs/$BASE.html"
+fi
 
 # Browser-tab title: the doc's first H1, falling back to the filename.
 TITLE="$(grep -m1 '^# ' "$SRC" | sed 's/^# //')"
