@@ -39,11 +39,11 @@ else
   OUT="$TOOLKIT/outputs/$BASE.html"
 fi
 
-# Browser-tab title: the doc's first H1, falling back to the filename.
+# Browser-tab title: the doc's first H1, or the filename if there isn't one.
 TITLE="$(grep -m1 '^# ' "$SRC" | sed 's/^# //')"
 TITLE="${TITLE:-$(basename "${SRC%.md}")}"
 
-# Footer stamp so a stale build is visible at a glance.
+# Footer stamp so you can tell when a build is stale.
 FOOTER="$(mktemp)"
 trap 'rm -f "$FOOTER"' EXIT
 printf '<footer class="doc-footer">Generated %s from %s</footer>\n' \
