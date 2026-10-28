@@ -1,0 +1,293 @@
+<style>
+.cy-figure {
+  position: relative; margin: 1.5em 0; overflow: hidden;
+  background: #000; border: 1px solid var(--border); border-radius: 10px;
+}
+.cy-figure { text-align: left; }  /* doc-style.css centers figures, which pushed the canvases to the side */
+.cy-canvas { width: 100%; }
+.cy-canvas canvas { left: 0; top: 0; }
+.cy-title {
+  position: absolute; top: .6rem; left: .9rem; z-index: 2;
+  font: 600 .75rem/1 system-ui, sans-serif; letter-spacing: .06em;
+  text-transform: uppercase; color: #c9c9d4; pointer-events: none;
+}
+.cy-hint {
+  position: absolute; left: .9rem; bottom: .6rem; z-index: 2;
+  font: .7rem/1 system-ui, sans-serif; color: #9a9aa8; pointer-events: none;
+}
+.cy-tools { position: absolute; top: .5rem; right: .6rem; z-index: 2; display: flex; gap: .3rem; }
+.cy-tools button {
+  width: 1.8rem; height: 1.8rem; border-radius: 6px; cursor: pointer;
+  background: #15151c; color: #ececf2; border: 1px solid #3a3a46;
+  font: 600 .9rem/1 system-ui, sans-serif;
+}
+.cy-figure.cy-full { width: auto !important; margin-left: 0 !important; position: fixed; inset: 0; z-index: 1000; margin: 0; border-radius: 0; }
+.cy-figure.cy-full .cy-canvas { height: 100vh !important; }
+.cy-tools button.cy-lock, .cy-tools button.cy-expand, .cy-tools button.cy-copy { width: auto; padding: 0 .65rem; font-size: .72rem; letter-spacing: .02em; }
+.cy-tools button[hidden] { display: none; }
+.cy-tools button.cy-lock.open { color: #eb64b9; border-color: #eb64b9; }
+.cy-tools button:hover { color: #eb64b9; border-color: #eb64b9; }
+.cy-panel {
+  position: absolute; top: 3rem; right: .8rem; z-index: 3; width: 22rem; max-width: calc(100% - 1.6rem);
+  max-height: calc(100% - 4rem); overflow: auto; padding: .9rem 1rem;
+  background: rgba(13,13,18,.94); color: #f8f8f2; border: 1px solid #3a3a46;
+  border-top: 2px solid var(--cy-accent, #eb64b9); border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.6); font: .85rem/1.4 system-ui, sans-serif;
+}
+.cy-panel[hidden] { display: none; }
+.cy-panel h4 { margin: 0; font-size: 1rem; color: #f8f8f2; }
+.cy-panel .cy-sub { margin: .1rem 0 .6rem; color: #b3b3bd; font-size: .78rem; }
+/* Reset the dt/dd margins from doc-style.css so the rows line up */
+.cy-panel dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; column-gap: 1rem; }
+.cy-panel dt, .cy-panel dd { margin: 0; padding: .35rem 0; border-top: 1px solid #1c1c24; }
+.cy-panel dt:first-of-type, .cy-panel dt:first-of-type + dd { border-top: 0; }
+.cy-panel dt { color: #c9c9d4; font-weight: 400; }
+.cy-panel dd { color: #74dfc4; font-family: ui-monospace, monospace; font-size: .8rem; overflow-wrap: anywhere; }
+</style>
+<script>
+/*CYTOSCAPE_LIB*/
+</script>
+<script>
+(function () {
+  var TYPES = {
+    internet: { c: "#74dfc4", shape: "ellipse" },
+    firewall: { c: "#ffe261", shape: "round-rectangle" },
+    switch:   { c: "#40b4c4", shape: "round-rectangle" },
+    server:   { c: "#eb64b9", shape: "round-rectangle" },
+    storage:  { c: "#b381c5", shape: "barrel" },
+    client:   { c: "#74dfc4", shape: "round-rectangle" },
+    ap:       { c: "#40b4c4", shape: "round-rectangle" }
+  };
+  var DEFAULT = { c: "#eb64b9", shape: "round-rectangle" };
+
+  function style() {
+    var s = [
+      { selector: "node", style: {
+        "shape": "data(shape)", "background-color": "data(fill)",
+        "border-width": 2, "border-color": "data(color)",
+        "label": "data(text)", "color": "#ffffff", "font-size": 15,
+        "font-family": "system-ui, sans-serif", "text-wrap": "wrap",
+        "text-valign": "center", "text-halign": "center", "line-height": 1.35,
+        "width": "data(w)", "height": "data(h)",
+        "underlay-color": "data(color)", "underlay-opacity": 0,
+        "underlay-padding": 8, "underlay-shape": "ellipse",
+        "transition-property": "underlay-opacity, opacity", "transition-duration": "0.15s"
+      } },
+      { selector: "node:parent", style: {
+        "shape": "round-rectangle", "background-color": "data(color)",
+        "background-opacity": 0.12, "border-style": "dashed", "border-width": 1.5,
+        "border-opacity": 0.85, "text-valign": "top", "text-halign": "center",
+        "font-size": 14, "font-weight": 700, "color": "data(color)",
+        "padding": "26px", "text-margin-y": -4, "underlay-opacity": 0
+      } },
+      { selector: "edge", style: {
+        "width": 2, "line-color": "#a3a3b3", "curve-style": "bezier",
+        "target-arrow-shape": "none", "label": "data(label)",
+        "font-size": 12, "color": "#ffffff", "font-family": "system-ui, sans-serif",
+        "text-background-color": "#000", "text-background-opacity": 1,
+        "text-background-padding": 3, "text-background-shape": "roundrectangle",
+        "source-label": "data(src)", "target-label": "data(dst)",
+        "source-text-offset": "data(so)", "target-text-offset": "data(to)",
+        "source-text-rotation": "none", "target-text-rotation": "none",
+        "edge-text-rotation": "none",
+        "transition-property": "opacity, line-color", "transition-duration": "0.15s"
+      } },
+      { selector: "edge[arrow]", style: { "target-arrow-shape": "triangle", "target-arrow-color": "#a3a3b3", "arrow-scale": 1.2 } },
+      { selector: "edge[dashed]", style: { "line-style": "dashed", "line-dash-pattern": [6, 4] } },
+      { selector: "edge[src], edge[dst]", style: { "font-family": "ui-monospace, monospace" } },
+      { selector: ".faded", style: { "opacity": 0.18 } },
+      { selector: "node:selected, node.hl", style: {
+        "underlay-opacity": 0.28, "border-width": 2.5 } },
+      { selector: "edge.hl, edge:selected", style: {
+        "line-color": "#eb64b9", "target-arrow-color": "#eb64b9", "width": 2.4 } }
+    ];
+    return s;
+  }
+
+  // Card fill: a light tint of the type color over near-black, so cards stand
+  // out but the text stays white.
+  function tint(hex) {
+    var c = parseInt(hex.slice(1), 16), base = [20, 16, 26], out = [];
+    [c >> 16, (c >> 8) & 255, c & 255].forEach(function (v, i) {
+      out.push(Math.round(base[i] + (v - base[i]) * 0.16));
+    });
+    return "rgb(" + out.join(",") + ")";
+  }
+
+  function elements(m) {
+    var els = [], parents = {};
+    (m.nodes || []).forEach(function (n) { if (n.parent) parents[n.parent] = true; });
+    (m.nodes || []).forEach(function (n) {
+      var t = TYPES[n.type] || DEFAULT;
+      var d = { id: n.id, color: t.c, fill: tint(t.c), shape: t.shape, details: n.details || {},
+                name: n.label || n.id, sub: n.sub || "" };
+      d.text = parents[n.id] ? d.name : (n.sub ? d.name + "\n" + n.sub : d.name);
+      // Size the card from its text. Cytoscape's own "label" sizing is
+      // deprecated and left some nodes at zero size.
+      var lines = d.text.split("\n");
+      d.w = Math.max.apply(null, lines.map(function (l) { return l.length; })) * 8.6 + 44;
+      d.h = lines.length * 21 + 28;
+      if (n.parent) d.parent = n.parent;
+      var e = { group: "nodes", data: d };
+      if (typeof n.x === "number" && typeof n.y === "number") e.position = { x: n.x, y: n.y };
+      els.push(e);
+    });
+    (m.edges || []).forEach(function (e, i) {
+      var d = { id: e.id || ("e" + i), source: e.from, target: e.to,
+                label: e.label || "", src: e.src || "", dst: e.dst || "",
+                details: e.details || {}, name: (e.label || (e.from + " → " + e.to)) };
+      // Move each end label away from its node by half its own length.
+      d.so = d.src.length * 3.7 + 26;
+      d.to = d.dst.length * 3.7 + 26;
+      if (e.dashed) d.dashed = true;
+      if (e.arrow) d.arrow = true;
+      els.push({ group: "edges", data: d });
+    });
+    return els;
+  }
+
+  function make(m, container) {
+    var els = elements(m);
+    var parents = {};
+    (m.nodes || []).forEach(function (n) { if (n.parent) parents[n.parent] = true; });
+    var placed = (m.nodes || []).every(function (n) {
+      return parents[n.id] || (typeof n.x === "number" && typeof n.y === "number");
+    });
+    return cytoscape({
+      container: container, headless: !container, elements: els, style: style(),
+      layout: placed ? { name: "preset", padding: 40 } : { name: "cose", animate: false, padding: 40, nodeRepulsion: 12000 },
+      userZoomingEnabled: false, boxSelectionEnabled: false, autoungrabify: true, minZoom: 0.3, maxZoom: 3
+    });
+  }
+
+  window.mdCy = { make: make, elements: elements, style: style };
+  if (typeof document === "undefined" || !document.querySelectorAll) return;
+
+  function esc(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+  document.querySelectorAll(".cy-figure").forEach(function (fig) {
+    var m = JSON.parse(fig.querySelector('script[type="application/json"]').textContent);
+    var box = fig.querySelector(".cy-canvas");
+    box.style.height = (m.height || 480) + "px";  // temporary, autoHeight() sets the real one
+    var cy = make(m, box);
+    // Fit to the box but never go above 100%, or on a big screen the
+    // diagram looks zoomed in.
+    function fitView() {
+      cy.fit(undefined, 40);
+      if (cy.zoom() > 1) { cy.zoom(1); cy.center(); }
+    }
+    fitView();
+    var panel = fig.querySelector(".cy-panel");
+
+    function show(el) {
+      var d = el.data(), rows = "";
+      Object.keys(d.details).forEach(function (k) {
+        rows += "<dt>" + esc(k) + "</dt><dd>" + esc(String(d.details[k])) + "</dd>";
+      });
+      panel.style.setProperty("--cy-accent", d.color || "#eb64b9");
+      panel.innerHTML = "<h4>" + esc(d.name) + "</h4>" +
+        (d.sub ? '<div class="cy-sub">' + esc(d.sub) + "</div>" : "") +
+        (rows ? "<dl>" + rows + "</dl>" : '<div class="cy-sub">No details.</div>');
+      panel.hidden = false;
+    }
+
+    cy.on("tap", "node, edge", function (e) { show(e.target); });
+    cy.on("tap", function (e) { if (e.target === cy) panel.hidden = true; });
+    cy.on("mouseover", "node:childless", function (e) {
+      var hood = e.target.closedNeighborhood();
+      cy.elements().not(hood).not(e.target.ancestors()).addClass("faded");
+      hood.addClass("hl");
+    });
+    cy.on("mouseout", "node", function () { cy.elements().removeClass("faded hl"); });
+    cy.on("mouseover", "node, edge", function () { box.style.cursor = "pointer"; });
+    cy.on("mouseout", "node, edge", function () { box.style.cursor = "default"; });
+
+    // The mouse wheel zooms the diagram, and the page doesn't scroll while the
+    // pointer is over it. Trackpad pinch works too.
+    box.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+      var r = box.getBoundingClientRect();
+      cy.zoom({ level: cy.zoom() * Math.pow(1.0018, -dy),
+                renderedPosition: { x: e.clientX - r.left, y: e.clientY - r.top } });
+    }, { passive: false });
+
+    // Locked by default so a stray drag doesn't move anything.
+    var lockBtn = fig.querySelector(".cy-lock");
+    var copyBtn = fig.querySelector(".cy-copy");
+
+    // Copy the block's JSON with the current positions, to paste back into
+    // the markdown after moving things around.
+    function copyLayout() {
+      var out = JSON.parse(JSON.stringify(m));
+      out.nodes.forEach(function (n) {
+        var el = cy.getElementById(n.id);
+        if (el.isParent()) { delete n.x; delete n.y; return; }
+        n.x = Math.round(el.position("x")); n.y = Math.round(el.position("y"));
+      });
+      var text = JSON.stringify(out, null, 2);
+      function done() {
+        copyBtn.textContent = "Copied";
+        setTimeout(function () { copyBtn.textContent = "Copy layout"; }, 1500);
+      }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done);
+      } else {
+        var ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); done(); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+    }
+    function setLocked(on) {
+      cy.autoungrabify(on);
+      lockBtn.textContent = on ? "Locked" : "Unlocked";
+      lockBtn.classList.toggle("open", !on);
+      lockBtn.title = on ? "Unlock to move items" : "Lock items in place";
+      copyBtn.hidden = on;
+    }
+    setLocked(true);
+
+    // Box height follows the diagram's shape, capped at 90% of the window.
+    function autoHeight() {
+      if (typeof m.height === "number" || fig.classList.contains("cy-full")) return;
+      var bb = cy.elements().boundingBox({ includeLabels: true });
+      var h = Math.min((box.clientWidth - 80) * bb.h / bb.w, bb.h) + 80;
+      box.style.height = Math.round(Math.max(320, Math.min(h, window.innerHeight * 0.9))) + "px";
+      cy.resize(); fitView();
+    }
+    // The box is the same width as the page column. Expand is for a closer look.
+    function refit() {
+      if (fig.classList.contains("cy-full")) return;
+      cy.resize(); fitView();
+      autoHeight();
+    }
+    refit();
+    window.addEventListener("resize", refit);
+
+    // Expand fills the window, Esc closes it.
+    var expandBtn = fig.querySelector(".cy-expand");
+    function setExpanded(on) {
+      fig.classList.toggle("cy-full", on);
+      expandBtn.textContent = on ? "Close" : "Expand";
+      document.documentElement.style.overflow = on ? "hidden" : "";
+      setTimeout(function () { refit(); cy.resize(); fitView(); }, 0);
+    }
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && fig.classList.contains("cy-full")) setExpanded(false);
+    });
+    if (window.ResizeObserver) new ResizeObserver(function () { cy.resize(); }).observe(box);
+
+    fig.querySelector(".cy-tools").addEventListener("click", function (e) {
+      var a = e.target.getAttribute("data-a");
+      if (a === "expand") setExpanded(!fig.classList.contains("cy-full"));
+      if (a === "lock") setLocked(!cy.autoungrabify());
+      if (a === "copy") copyLayout();
+      if (a === "fit") fitView();
+      if (a === "in") cy.zoom({ level: cy.zoom() * 1.25, renderedPosition: { x: box.clientWidth / 2, y: box.clientHeight / 2 } });
+      if (a === "out") cy.zoom({ level: cy.zoom() * 0.8, renderedPosition: { x: box.clientWidth / 2, y: box.clientHeight / 2 } });
+    });
+  });
+})();
+</script>

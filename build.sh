@@ -23,6 +23,13 @@ if [ $# -lt 1 ] || [ ! -f "$1" ]; then
   exit 1
 fi
 
+export CY_DIR="$TOOLKIT"   # cytoscape.lua reads vendor/cytoscape from here
+
+# On Windows (Git Bash) pandoc can't read POSIX-style paths, so convert this one.
+if command -v cygpath >/dev/null 2>&1; then
+  export CY_DIR="$(cygpath -m "$CY_DIR")"
+fi
+
 SRC="$1"
 OUT="${2:-${SRC%.md}.html}"
 
@@ -38,6 +45,7 @@ printf '<footer class="doc-footer">Generated %s from %s</footer>\n' \
 
 pandoc "$SRC" \
   --standalone --embed-resources \
+  --lua-filter "$TOOLKIT/cytoscape.lua" \
   --lua-filter "$TOOLKIT/default-lang.lua" \
   --css "$TOOLKIT/doc-style.css" \
   --include-after-body "$TOOLKIT/toc-sidebar.html" \
