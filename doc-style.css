@@ -135,7 +135,7 @@ dt { font-weight: 600; margin-top: .6rem; }
 dd { margin-left: 1.2rem; }
 ul, ol { padding-left: 1.6rem; }
 li { margin: .25rem 0; }
-input[type="checkbox"] { margin-right: .45rem; }
+input[type="checkbox"] { margin-right: .45rem; accent-color: var(--accent); }
 strong { font-weight: 600; }
 a { color: var(--accent); }
 a:hover { color: var(--accent-hover); }
