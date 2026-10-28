@@ -11,6 +11,13 @@ if ! command -v pandoc >/dev/null 2>&1; then
   exit 1
 fi
 
+# cytoscape.lua needs pandoc.json, added in pandoc 3.1.1.
+PANDOC_VER="$(pandoc --version | head -1 | awk '{print $2}')"
+if [ "$(printf '%s\n3.1.1\n' "$PANDOC_VER" | sort -V | head -1)" != "3.1.1" ]; then
+  echo "Error: pandoc $PANDOC_VER is too old; 3.1.1 or newer is required" >&2
+  exit 1
+fi
+
 if [ $# -lt 1 ] || [ ! -f "$1" ]; then
   echo "Usage: $0 <doc.md> [output.html]" >&2
   exit 1
