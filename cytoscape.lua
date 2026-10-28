@@ -12,13 +12,37 @@ local function slurp(path)
   return s
 end
 
+-- Fail the build with a clear message instead of drawing a broken diagram.
+local function validate(m)
+  local function fail(msg) error("cytoscape block: " .. msg, 0) end
+  if type(m.nodes) ~= "table" or #m.nodes == 0 then fail('"nodes" must be a non-empty list') end
+  local ids = {}
+  for i, n in ipairs(m.nodes) do
+    if type(n.id) ~= "string" or n.id == "" then fail("node #" .. i .. ' needs a string "id"') end
+    if ids[n.id] then fail("duplicate node id '" .. n.id .. "'") end
+    ids[n.id] = true
+  end
+  for _, n in ipairs(m.nodes) do
+    if n.parent ~= nil and not ids[n.parent] then
+      fail("node '" .. n.id .. "' has unknown parent '" .. tostring(n.parent) .. "'")
+    end
+  end
+  for i, e in ipairs(m.edges or {}) do
+    for _, end_ in ipairs({ "from", "to" }) do
+      if not ids[e[end_]] then
+        fail("edge #" .. i .. " has unknown \"" .. end_ .. "\" node '" .. tostring(e[end_]) .. "'")
+      end
+    end
+  end
+end
+
 local function render(el)
   if not el.classes:includes("cytoscape") then return nil end
   local ok, model = pcall(pandoc.json.decode, el.text, false)
   if not ok or type(model) ~= "table" then
-    io.stderr:write("cytoscape.lua: block is not valid JSON, leaving as code\n")
-    return nil
+    error("cytoscape block: not valid JSON (" .. tostring(model):sub(1, 120) .. ")", 0)
   end
+  validate(model)
   used = true
   local json = el.text:gsub("</", "<\\/")
   local title = type(model.title) == "string" and model.title or ""
