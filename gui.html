@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>md2html</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #000; --fg: #f8f8f2; --fg-muted: #7a7a85; --fg-soft: #b3b3bd;
+    --surface: #0d0d12; --surface-2: #1f1320; --border: #26262e;
+    --accent: #eb64b9; --ok: #74dfc4; --err: #ff5555;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  }
+  main { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+  h1 { margin: 0 0 .3rem; font-size: 1.9rem; }
+  h1::after { content: ""; display: block; width: 3.5rem; height: 3px;
+              background: var(--accent); border-radius: 2px; margin-top: .5rem; }
+  p.lead { color: var(--fg-soft); margin: .8rem 0 1.5rem; }
+  #drop {
+    border: 2px dashed var(--border); border-radius: 12px; background: var(--surface);
+    padding: 2.8rem 1rem; text-align: center; cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  #drop:hover, #drop:focus-visible, #drop.over { border-color: var(--accent); background: var(--surface-2); outline: none; }
+  #drop strong { display: block; font-size: 1.15rem; }
+  #drop span { color: var(--fg-muted); font-size: .9rem; }
+  button.browse {
+    margin-top: 1rem; padding: .5rem 1.1rem; border-radius: 6px; cursor: pointer;
+    background: var(--surface-2); color: var(--fg); border: 1px solid var(--accent); font: inherit;
+  }
+  button.browse:hover { background: var(--accent); color: #000; }
+  ul#list { list-style: none; margin: 1.5rem 0 0; padding: 0; display: grid; gap: .6rem; }
+  li.row {
+    display: grid; grid-template-columns: 1fr auto; gap: .5rem 1rem; align-items: center;
+    padding: .7rem .9rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  }
+  li.row .name { font-family: ui-monospace, Menlo, Consolas, monospace; word-break: break-all; }
+  li.row .state { font-size: .85rem; color: var(--fg-muted); }
+  li.row.ok .state { color: var(--ok); }
+  li.row.err { border-color: var(--err); }
+  li.row.err .state { color: var(--err); }
+  .actions { display: flex; gap: .5rem; }
+  .actions a {
+    padding: .3rem .8rem; border-radius: 6px; font-size: .85rem; text-decoration: none;
+    color: var(--fg); border: 1px solid var(--border); background: var(--surface-2);
+  }
+  .actions a:hover { border-color: var(--accent); color: var(--accent); }
+  pre.msg { grid-column: 1 / -1; margin: 0; white-space: pre-wrap; font-size: .8rem; color: var(--err); }
+  footer { margin-top: 3rem; color: var(--fg-muted); font-size: .8rem; text-align: center; }
+</style>
+</head>
+<body>
+<main>
+  <h1>md2html</h1>
+  <p class="lead">Drop Markdown files here, or browse, to build themed single-file HTML pages.</p>
+
+  <div id="drop" tabindex="0" role="button" aria-label="Choose Markdown files">
+    <strong>Drop .md files here</strong>
+    <span>or</span><br>
+    <button type="button" class="browse">Browse files</button>
+  </div>
+  <input id="file" type="file" accept=".md,.markdown" multiple hidden>
+
+  <ul id="list"></ul>
+  <footer>Runs locally, your files never leave this machine. Images linked by relative path are not included.</footer>
+</main>
+
+<script>
+(function () {
+  var TOKEN = "__TOKEN__";
+  var drop = document.getElementById("drop");
+  var input = document.getElementById("file");
+  var list = document.getElementById("list");
+
+  function pick() { input.click(); }
+  drop.addEventListener("click", pick);
+  drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+  input.addEventListener("change", function () { handle(input.files); input.value = ""; });
+
+  ["dragenter", "dragover"].forEach(function (t) {
+    drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add("over"); });
+  });
+  ["dragleave", "drop"].forEach(function (t) {
+    drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove("over"); });
+  });
+  drop.addEventListener("drop", function (e) { handle(e.dataTransfer.files); });
+  // A drop outside the box must not navigate the tab to the raw file.
+  window.addEventListener("dragover", function (e) { e.preventDefault(); });
+  window.addEventListener("drop", function (e) { e.preventDefault(); });
+
+  function handle(files) {
+    Array.prototype.forEach.call(files, function (f) { buildOne(f); });
+  }
+
+  function buildOne(file) {
+    var li = document.createElement("li");
+    li.className = "row";
+    var name = document.createElement("div"); name.className = "name"; name.textContent = file.name;
+    var state = document.createElement("div"); state.className = "state";
+    li.appendChild(name); li.appendChild(state);
+    list.insertBefore(li, list.firstChild);
+
+    if (!/\.(md|markdown)$/i.test(file.name)) {
+      li.classList.add("err"); state.textContent = "Not a Markdown file";
+      return;
+    }
+    state.textContent = "Building...";
+    fetch("/build?name=" + encodeURIComponent(file.name), {
+      method: "POST", headers: { "X-Token": TOKEN }, body: file
+    }).then(function (r) {
+      return r.ok ? r.blob() : r.text().then(function (t) { throw new Error(t); });
+    }).then(function (blob) {
+      var url = URL.createObjectURL(new Blob([blob], { type: "text/html" }));
+      var out = file.name.replace(/\.(md|markdown)$/i, "") + ".html";
+      li.classList.add("ok");
+      state.textContent = "Built " + out + " (" + Math.round(blob.size / 1024) + " KB)";
+      var acts = document.createElement("div"); acts.className = "actions";
+      var dl = document.createElement("a"); dl.href = url; dl.download = out; dl.textContent = "Download";
+      var op = document.createElement("a"); op.href = url; op.target = "_blank"; op.rel = "noopener"; op.textContent = "Open";
+      acts.appendChild(dl); acts.appendChild(op);
+      li.insertBefore(acts, state.nextSibling);
+      dl.click();
+    }).catch(function (err) {
+      li.classList.add("err"); state.textContent = "Build failed";
+      var pre = document.createElement("pre"); pre.className = "msg"; pre.textContent = err.message;
+      li.appendChild(pre);
+    });
+  }
+})();
+</script>
+</body>
+</html>
