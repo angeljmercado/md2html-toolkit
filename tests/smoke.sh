@@ -15,6 +15,8 @@ cat > "$TMP/doc.md" <<'MD'
  "edges": [{"from": "a", "to": "b", "src": "eth0", "dst": "eth1"}]}
 ```
 
+See [node a]{node=a} and [both]{node="a b"}.
+
 ```bash
 echo hello
 ```
@@ -30,6 +32,7 @@ check "no external references" "[ \"\$(grep -cE '(href|src)=\"(https?:|[^#\"])' 
 check "diagram present" "[ \"\$(grep -c 'class=\"cy-figure\"' '$TMP/doc.html')\" = 1 ]"
 check "code block highlighted" "grep -q 'class=\"sourceCode' '$TMP/doc.html'"
 check "table present" "grep -q '<table' '$TMP/doc.html'"
+check "node reference rendered" "grep -q 'class=\"cy-ref\" data-node=\"a b\"' '$TMP/doc.html'"
 check "pin and pop-out buttons" "grep -q 'data-a=\"pin\"' '$TMP/doc.html' && grep -q 'data-a=\"pop\"' '$TMP/doc.html'"
 check "no filter warnings" "! grep -q 'cytoscape.lua:' '$TMP/log'"
 
@@ -39,6 +42,9 @@ check "default output goes to outputs/" "[ -s '$ROOT/outputs/smoke-$$.html' ]"
 
 printf '# t\n\n```cytoscape\n{"nodes":[{"id":"a"}],"edges":[{"from":"a","to":"missing"}]}\n```\n' > "$TMP/bad.md"
 check "bad edge fails the build" "! '$ROOT/build.sh' '$TMP/bad.md' '$TMP/bad.html' >'$TMP/bad.log' 2>&1 && grep -q \"unknown\" '$TMP/bad.log'"
+
+printf '# t\n\n```cytoscape\n{"nodes":[{"id":"a"}]}\n```\n\nSee [x]{node=nope}.\n' > "$TMP/badref.md"
+check "unknown node reference fails the build" "! '$ROOT/build.sh' '$TMP/badref.md' '$TMP/badref.html' >'$TMP/badref.log' 2>&1 && grep -q \"unknown node 'nope'\" '$TMP/badref.log'"
 
 check "vendored files match SHA256SUMS" "(cd '$ROOT/vendor' && sha256sum -c --quiet SHA256SUMS)"
 

@@ -112,5 +112,8 @@ lists are styled.
 - Pop out moves the figure into the other window and calls `cy.mount(box)`
   again, so Cytoscape rebinds its mouse events to that window. Without it,
   dragging and clicking in the pop-out do nothing.
+- IP auto-linking runs in the browser after load, because pandoc's syntax
+  highlighting already split code into spans at build time. IPs stay in
+  one text node, so the runtime can wrap them.
 - The outline's scroll-spy line follows the headings' `scroll-margin-top`,
   which grows when a diagram is pinned on top.

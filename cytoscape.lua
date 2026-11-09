@@ -3,6 +3,7 @@
 -- Needs CY_DIR (build.sh sets it) to find vendor/cytoscape and cytoscape-runtime.html.
 local dir = os.getenv("CY_DIR")
 local used = false
+local known = {}  -- node ids from every diagram, to check [text]{node=id} references
 
 local function slurp(path)
   local f = io.open(path, "r")
@@ -15,6 +16,7 @@ end
 -- Fail the build with a clear message instead of drawing a broken diagram.
 local function validate(m)
   local function fail(msg) error("cytoscape block: " .. msg, 0) end
+  if m.autolink ~= nil and type(m.autolink) ~= "boolean" then fail('"autolink" must be true or false') end
   if type(m.nodes) ~= "table" or #m.nodes == 0 then fail('"nodes" must be a non-empty list') end
   local ids = {}
   for i, n in ipairs(m.nodes) do
@@ -43,6 +45,7 @@ local function render(el)
     error("cytoscape block: not valid JSON (" .. tostring(model):sub(1, 120) .. ")", 0)
   end
   validate(model)
+  for _, n in ipairs(model.nodes) do known[n.id] = true end
   used = true
   local json = el.text:gsub("</", "<\\/")
   local title = type(model.title) == "string" and model.title or ""
@@ -56,6 +59,25 @@ local function render(el)
     '<div class="cy-canvas"></div><div class="cy-panel" hidden></div>' ..
     '<div class="cy-hint">click a device for details &middot; scroll to zoom &middot; drag the background to pan &middot; Pin to keep it beside the text</div>' ..
     '<script type="application/json">' .. json .. '</script></figure>')
+end
+
+-- [text]{node=id} in the text links to a diagram node: hover highlights it,
+-- click opens its details. Several ids ("r1 r2") highlight them and the links
+-- between them.
+local function ref(el)
+  local v = el.attributes.node
+  if v == nil then return nil end
+  local text = pandoc.utils.stringify(el)
+  if v:match("^%s*$") then error("[" .. text .. "]{node=...}: empty node id", 0) end
+  for id in v:gmatch("%S+") do
+    if not known[id] then
+      error("[" .. text .. "]{node=" .. v .. "}: unknown node '" .. id .. "'", 0)
+    end
+  end
+  el.attributes.node = nil
+  el.attributes["data-node"] = v
+  el.classes:insert("cy-ref")
+  return el
 end
 
 local function finish(doc)
@@ -76,4 +98,4 @@ local function finish(doc)
   return doc
 end
 
-return { { CodeBlock = render }, { Pandoc = finish } }
+return { { CodeBlock = render }, { Span = ref }, { Pandoc = finish } }

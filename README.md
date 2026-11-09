@@ -16,7 +16,7 @@ HTML when I want a version that is easy to read and share.
 - Copy button on every code block, Laserwave-style magenta syntax
   colors in dark mode
 - Interactive diagrams (Cytoscape.js): click, hover, zoom, pan, pin beside
-  the text or pop out to another window
+  the text or pop out to another window, and link the text to devices
 - "Generated <date>" footer so you can tell when a build is stale
 - Print-friendly — use the browser's Print > Save as PDF for a PDF
 
@@ -80,7 +80,8 @@ Put JSON in a ` ```cytoscape ` block and place each device with `x`/`y`:
   `ap`), `parent` (put it inside a group node, like a VLAN) and `details`.
 - **Edge:** `from`, `to`, plus optional `label` (middle), `src`/`dst` (labels
   at each end, good for interface and IP), `dashed`, `arrow` and `details`.
-- **Block:** optional `title`, and `height` if you don't want the automatic one.
+- **Block:** optional `title`, `height` if you don't want the automatic one,
+  and `"autolink": true` (see below).
 - **In the page:** click a device or link for its details, hover to highlight
   its links, scroll to zoom, drag the background to pan, **Expand** for full
   window.
@@ -93,8 +94,29 @@ Put JSON in a ` ```cytoscape ` block and place each device with `x`/`y`:
 - **Moving things:** devices are locked by default. Hit **Unlocked** to drag
   them, then **Copy layout** to copy the JSON with the new positions and paste
   it back into the Markdown.
-- Bad JSON, an unknown node in an edge, a duplicate id or an unknown parent
+- Bad JSON, an unknown node in an edge or a `{node=...}` reference, a duplicate id or an unknown parent
   fails the build with a message.
+
+### Linking the text to a diagram
+
+Point text at a device with `[text]{node=id}`. Hovering it highlights the
+device in the diagram and shows its name, clicking opens its details (and
+pins the diagram if it's off screen). Several ids highlight them and the
+links between them. Hovering a device in the diagram marks the text that
+mentions it.
+
+```markdown
+From [PC1]{node=pc1}, ping [10.10.10.10]{node=srv1}.
+Hover the [trunk]{node="r2 sw1"} to see both ends.
+```
+
+With `"autolink": true` in a diagram, IPs in the text, tables and code
+blocks link to its devices without markup. An IP belongs to a device when
+it is in its `sub`, on its end of a link, or written as a CIDR
+(`10.10.10.1/24`). Plain mentions like `"Gateway": "10.10.10.1"` only count
+when nothing stronger claims the IP. IPs that match no device, or more than
+one, stay plain text. A pinned or popped-out diagram answers references
+first, then the nearest diagram above the text.
 
 ## Files
 
@@ -106,7 +128,7 @@ Put JSON in a ` ```cytoscape ` block and place each device with `x`/`y`:
 | `toc-sidebar.html`, `page-extras.html` | Outline sidebar and scroll highlighting |
 | `copy-code.html` | Copy buttons |
 | `default-lang.lua` | Forces syntax colors on every code block (bash by default) |
-| `cytoscape.lua`, `cytoscape-runtime.html` | Diagrams: validation, rendering, pin/pop out, behavior |
+| `cytoscape.lua`, `cytoscape-runtime.html` | Diagrams: validation, `{node=...}` links, rendering, pin/pop out, behavior |
 | `vendor/` | Cytoscape.js 3.34.4 and its `SHA256SUMS` |
 | `tests/smoke.sh` | Quick check: builds a small doc and verifies the output |
 | `html_context.md` | Full reference: how it works, theme colors, gotchas |
