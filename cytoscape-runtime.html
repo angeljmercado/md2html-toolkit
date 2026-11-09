@@ -426,7 +426,7 @@
     }
     function setLocked(on) {
       cy.autoungrabify(on);
-      lockBtn.textContent = on ? "Locked" : "Unlocked";
+      lockBtn.textContent = on ? "Unlock" : "Lock";
       lockBtn.classList.toggle("open", !on);
       lockBtn.title = on ? "Unlock to move items" : "Lock items in place";
       copyBtn.hidden = on;

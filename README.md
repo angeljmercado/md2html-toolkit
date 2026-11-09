@@ -95,7 +95,7 @@ Put JSON in a ` ```cytoscape ` block and place each device with `x`/`y`:
 - **Pop out:** moves the diagram into its own window, for a second monitor.
   Chrome and Edge open an always-on-top Picture-in-Picture window, other
   browsers a normal pop-up. **Dock** or closing the window brings it back.
-- **Moving things:** devices are locked by default. Hit **Unlocked** to drag
+- **Moving things:** devices are locked by default. Hit **Unlock** to drag
   them, then **Copy layout** to copy the JSON with the new positions and paste
   it back into the Markdown.
 - Bad JSON, an unknown node in an edge or a `{node=...}` reference, a duplicate id or an unknown parent
