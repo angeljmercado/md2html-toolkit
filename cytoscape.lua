@@ -30,6 +30,15 @@ local function validate(m)
     end
   end
   for i, e in ipairs(m.edges or {}) do
+    for _, k in ipairs({ "src", "dst" }) do
+      local v = e[k]
+      local ok = v == nil or type(v) == "string"
+      if type(v) == "table" then
+        ok = true
+        for _, line in ipairs(v) do if type(line) ~= "string" then ok = false end end
+      end
+      if not ok then fail("edge #" .. i .. ' "' .. k .. '" must be a string or a list of strings') end
+    end
     for _, end_ in ipairs({ "from", "to" }) do
       if not ids[e[end_]] then
         fail("edge #" .. i .. " has unknown \"" .. end_ .. "\" node '" .. tostring(e[end_]) .. "'")

@@ -117,3 +117,9 @@ lists are styled.
   one text node, so the runtime can wrap them.
 - The outline's scroll-spy line follows the headings' `scroll-margin-top`,
   which grows when a diagram is pinned on top.
+- Edge end labels are placed from the link's angle and the label's size
+  (`endOffset()` in `cytoscape-runtime.html`), so they sit against their own
+  node. The size math assumes the edge style's 12px monospace, line-height
+  1.25 and 3px padding, so change both together.
+- Group (VLAN) titles sit under the box: links usually enter from the top
+  and their end labels covered a title there.

@@ -78,8 +78,11 @@ Put JSON in a ` ```cytoscape ` block and place each device with `x`/`y`:
 - **Node:** `id`, `label`, `x`/`y`, plus optional `sub` (second line),
   `type` (`internet`, `firewall`, `switch`, `server`, `storage`, `client`,
   `ap`), `parent` (put it inside a group node, like a VLAN) and `details`.
-- **Edge:** `from`, `to`, plus optional `label` (middle), `src`/`dst` (labels
-  at each end, good for interface and IP), `dashed`, `arrow` and `details`.
+- **Edge:** `from`, `to`, plus optional `label` (middle), `src`/`dst` (the
+  interface and IP at each end), `dashed`, `arrow` and `details`. Each end
+  label sits right next to its own device; `"G0/1 10.0.12.1/30"` is shown as
+  two lines, interface over IP. Use a list for several lines, like
+  sub-interfaces: `"src": ["G0/1.10 10.10.10.1/24", "G0/1.20 10.10.20.1/24"]`.
 - **Block:** optional `title`, `height` if you don't want the automatic one,
   and `"autolink": true` (see below).
 - **In the page:** click a device or link for its details, hover to highlight
