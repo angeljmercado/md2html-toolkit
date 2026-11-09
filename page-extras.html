@@ -16,8 +16,10 @@ nav#TOC a.active { font-weight: 600; color: var(--accent); background: var(--hov
   var current = null;
   function spy() {
     var active = null;
+    /* Below the heading's scroll margin, which grows when a diagram is pinned on top */
+    var line = headings.length ? (parseFloat(getComputedStyle(headings[0]).scrollMarginTop) || 56) + 35 : 90;
     for (var i = 0; i < headings.length; i++) {
-      if (headings[i].getBoundingClientRect().top <= 90) active = headings[i];
+      if (headings[i].getBoundingClientRect().top <= line) active = headings[i];
       else break;
     }
     if (active === current) return;

@@ -15,7 +15,8 @@ HTML when I want a version that is easy to read and share.
   the system setting
 - Copy button on every code block, Laserwave-style magenta syntax
   colors in dark mode
-- Interactive diagrams (Cytoscape.js): click, hover, zoom, pan
+- Interactive diagrams (Cytoscape.js): click, hover, zoom, pan, pin beside
+  the text or pop out to another window
 - "Generated <date>" footer so you can tell when a build is stale
 - Print-friendly — use the browser's Print > Save as PDF for a PDF
 
@@ -83,6 +84,12 @@ Put JSON in a ` ```cytoscape ` block and place each device with `x`/`y`:
 - **In the page:** click a device or link for its details, hover to highlight
   its links, scroll to zoom, drag the background to pan, **Expand** for full
   window.
+- **Pin:** keeps the diagram on screen while you scroll, docked on the right
+  (on top below 1100 px wide). Drag its edge to resize. The page remembers
+  the pinned diagram and the size. **Esc** unpins.
+- **Pop out:** moves the diagram into its own window, for a second monitor.
+  Chrome and Edge open an always-on-top Picture-in-Picture window, other
+  browsers a normal pop-up. **Dock** or closing the window brings it back.
 - **Moving things:** devices are locked by default. Hit **Unlocked** to drag
   them, then **Copy layout** to copy the JSON with the new positions and paste
   it back into the Markdown.
@@ -99,7 +106,7 @@ Put JSON in a ` ```cytoscape ` block and place each device with `x`/`y`:
 | `toc-sidebar.html`, `page-extras.html` | Outline sidebar and scroll highlighting |
 | `copy-code.html` | Copy buttons |
 | `default-lang.lua` | Forces syntax colors on every code block (bash by default) |
-| `cytoscape.lua`, `cytoscape-runtime.html` | Diagrams: validation, rendering, behavior |
+| `cytoscape.lua`, `cytoscape-runtime.html` | Diagrams: validation, rendering, pin/pop out, behavior |
 | `vendor/` | Cytoscape.js 3.34.4 and its `SHA256SUMS` |
 | `tests/smoke.sh` | Quick check: builds a small doc and verifies the output |
 | `html_context.md` | Full reference: how it works, theme colors, gotchas |

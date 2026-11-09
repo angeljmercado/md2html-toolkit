@@ -43,6 +43,8 @@ grep -cE '(href|src)="(https?:|[^#"])' <name>.html
 | Content width (`--page-width`, `75rem`) | `:root` in `doc-style.css` |
 | Sidebar width (`270px`) | `toc-sidebar.html` (nav width + margin calc) |
 | Sidebar auto-open breakpoint (`1100px`) | `toc-sidebar.html` (media query + JS) |
+| Pinned diagram default size (`--cy-pin-w`, `--cy-pin-h`) | `:root` in `cytoscape-runtime.html` |
+| Pinned diagram right/top breakpoint (`1100px`) | `cytoscape-runtime.html` (media queries + `wide()`) |
 | Outline depth | `--toc-depth=N` |
 | Colors | design tokens at the top of `doc-style.css` (two `:root` blocks: light, then dark inside `@media`) — all assets read them via `var(--…)` |
 
@@ -104,3 +106,11 @@ lists are styled.
   handles this.
 - Generated HTML goes stale silently — regenerate after editing the
   Markdown. Print → Save as PDF for a PDF; sidebar/buttons auto-hide.
+- Pinned diagrams use `position: fixed` plus a margin on `body`. The rules
+  in `cytoscape-runtime.html` use two classes (`body.cy-pin-open.toc-open`)
+  so they beat the sidebar's `body.toc-open` margin, which loads later.
+- Pop out moves the figure into the other window and calls `cy.mount(box)`
+  again, so Cytoscape rebinds its mouse events to that window. Without it,
+  dragging and clicking in the pop-out do nothing.
+- The outline's scroll-spy line follows the headings' `scroll-margin-top`,
+  which grows when a diagram is pinned on top.

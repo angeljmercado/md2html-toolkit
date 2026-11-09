@@ -50,11 +50,11 @@ local function render(el)
   return pandoc.RawBlock("html",
     '<figure class="cy-figure">' ..
     (title ~= "" and ('<div class="cy-title">' .. title .. '</div>') or "") ..
-    '<div class="cy-tools"><button class="cy-copy" data-a="copy" hidden>Copy layout</button><button class="cy-lock" data-a="lock"></button><button class="cy-expand" data-a="expand">Expand</button><button data-a="in" title="Zoom in">+</button>' ..
+    '<div class="cy-tools"><button class="cy-copy" data-a="copy" hidden>Copy layout</button><button class="cy-lock" data-a="lock"></button><button class="cy-pin" data-a="pin" title="Keep the diagram on screen while you scroll">Pin</button><button class="cy-pop" data-a="pop" title="Open the diagram in its own window">Pop out</button><button class="cy-expand" data-a="expand">Expand</button><button data-a="in" title="Zoom in">+</button>' ..
     '<button data-a="out" title="Zoom out">&minus;</button>' ..
     '<button data-a="fit" title="Fit to view">&#9633;</button></div>' ..
     '<div class="cy-canvas"></div><div class="cy-panel" hidden></div>' ..
-    '<div class="cy-hint">click a device for details &middot; scroll to zoom &middot; drag the background to pan &middot; Unlock to move items</div>' ..
+    '<div class="cy-hint">click a device for details &middot; scroll to zoom &middot; drag the background to pan &middot; Pin to keep it beside the text</div>' ..
     '<script type="application/json">' .. json .. '</script></figure>')
 end
 

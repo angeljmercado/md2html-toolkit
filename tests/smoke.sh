@@ -30,6 +30,7 @@ check "no external references" "[ \"\$(grep -cE '(href|src)=\"(https?:|[^#\"])' 
 check "diagram present" "[ \"\$(grep -c 'class=\"cy-figure\"' '$TMP/doc.html')\" = 1 ]"
 check "code block highlighted" "grep -q 'class=\"sourceCode' '$TMP/doc.html'"
 check "table present" "grep -q '<table' '$TMP/doc.html'"
+check "pin and pop-out buttons" "grep -q 'data-a=\"pin\"' '$TMP/doc.html' && grep -q 'data-a=\"pop\"' '$TMP/doc.html'"
 check "no filter warnings" "! grep -q 'cytoscape.lua:' '$TMP/log'"
 
 cp "$TMP/doc.md" "$TMP/smoke-$$.md"
