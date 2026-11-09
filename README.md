@@ -85,9 +85,10 @@ Put JSON in a ` ```cytoscape ` block and place each device with `x`/`y`:
   sub-interfaces: `"src": ["G0/1.10 10.10.10.1/24", "G0/1.20 10.10.20.1/24"]`.
 - **Block:** optional `title`, `height` if you don't want the automatic one,
   and `"autolink": true` (see below).
-- **In the page:** click a device or link for its details, hover to highlight
-  its links, scroll to zoom, drag the background to pan, **Expand** for full
-  window.
+- **In the page:** click a device or link for its details (a device also
+  lists its links: local interface and IP, then the neighbor and its end),
+  hover to highlight its links, scroll to zoom, drag the background to pan,
+  **Expand** for full window.
 - **Pin:** keeps the diagram on screen while you scroll, docked on the right
   (on top below 1100 px wide). Drag its edge to resize. The page remembers
   the pinned diagram and the size. **Esc** unpins.

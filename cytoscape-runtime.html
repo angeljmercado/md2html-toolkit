@@ -107,6 +107,14 @@
 .cy-panel dt, .cy-panel dd { margin: 0; padding: .35rem 0; border-top: 1px solid #1c1c24; }
 .cy-panel dt:first-of-type, .cy-panel dt:first-of-type + dd { border-top: 0; }
 .cy-panel dt { color: #c9c9d4; font-weight: 400; }
+.cy-panel .cy-sec {
+  margin: .8rem 0 .2rem; font-size: .68rem; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: #9a9aa8;
+}
+.cy-panel .cy-links { grid-template-columns: fit-content(55%) 1fr; }
+.cy-panel .cy-links dt { overflow-wrap: anywhere; color: #74dfc4; font-family: ui-monospace, monospace; font-size: .8rem; }
+.cy-panel .cy-links dd { color: #f8f8f2; font-family: inherit; font-size: .85rem; }
+.cy-panel .cy-far { color: #b3b3bd; font-family: ui-monospace, monospace; font-size: .76rem; }
 .cy-panel dd { color: #74dfc4; font-family: ui-monospace, monospace; font-size: .8rem; overflow-wrap: anywhere; }
 </style>
 <script>
@@ -326,10 +334,26 @@
       Object.keys(d.details).forEach(function (k) {
         rows += "<dt>" + esc(k) + "</dt><dd>" + esc(String(d.details[k])) + "</dd>";
       });
+      // Links: this end's interface/IP, then the device at the other end.
+      var one = function (t) { return t.replace(/\n/g, " "); }, links = "";
+      if (el.isEdge()) {
+        [["source", "src"], ["target", "dst"]].forEach(function (p) {
+          var n = el[p[0]](), t = el.data(p[1]);
+          links += "<dt>" + esc(n.data("name")) + "</dt><dd>" + (t ? esc(one(t)) : "&ndash;") + "</dd>";
+        });
+      } else {
+        el.connectedEdges().forEach(function (e) {
+          var mine = e.source().same(el), other = mine ? e.target() : e.source();
+          var here = e.data(mine ? "src" : "dst"), there = e.data(mine ? "dst" : "src");
+          links += "<dt>" + (here ? esc(one(here)) : "&ndash;") + "</dt><dd>&rarr; " + esc(other.data("name")) +
+                   (there ? ' <span class="cy-far">' + esc(one(there)) + "</span>" : "") + "</dd>";
+        });
+      }
       panel.style.setProperty("--cy-accent", d.color || "#eb64b9");
       panel.innerHTML = "<h4>" + esc(d.name) + "</h4>" +
         (d.sub ? '<div class="cy-sub">' + esc(d.sub) + "</div>" : "") +
-        (rows ? "<dl>" + rows + "</dl>" : '<div class="cy-sub">No details.</div>');
+        (rows ? "<dl>" + rows + "</dl>" : (links ? "" : '<div class="cy-sub">No details.</div>')) +
+        (links ? '<div class="cy-sec">' + (el.isEdge() ? "Ends" : "Links") + '</div><dl class="cy-links">' + links + "</dl>" : "");
       panel.hidden = false;
     }
 
