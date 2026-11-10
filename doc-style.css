@@ -109,6 +109,7 @@ table {
   border: 1px solid var(--border);
   border-radius: 10px;
   font-size: .92rem;
+  font-variant-numeric: tabular-nums;  /* digits line up in columns */
 }
 th, td {
   padding: .65rem 1rem;
