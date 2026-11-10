@@ -15,6 +15,14 @@
   position: absolute; left: .9rem; bottom: .6rem; z-index: 2;
   font: .7rem/1 system-ui, sans-serif; color: #9a9aa8; pointer-events: none;
 }
+/* "Ctrl + scroll to zoom", shown briefly when a plain wheel scrolls past a diagram */
+.cy-wheel-tip {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3;
+  padding: .45rem .9rem; border-radius: 8px; background: rgba(0,0,0,.78); color: #f8f8f2;
+  border: 1px solid #3a3a46; font: 600 .85rem/1.2 system-ui, sans-serif;
+  pointer-events: none; opacity: 0; transition: opacity .2s;
+}
+.cy-wheel-tip.on { opacity: 1; }
 .cy-tools { position: absolute; top: .5rem; right: .6rem; z-index: 2; display: flex; gap: .3rem; }
 .cy-tools button {
   width: 1.8rem; height: 1.8rem; border-radius: 6px; cursor: pointer;
@@ -384,9 +392,20 @@
     cy.on("mouseout", "node, edge", function () { box.style.cursor = "default"; });
 
     // Ctrl + wheel zooms the diagram (trackpad pinch sends ctrlKey too).
-    // A plain wheel scrolls the page as usual.
+    // A plain wheel scrolls the page and shows a short hint.
+    var mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+    var wheelTip = document.createElement("div"), wheelTimer;
+    wheelTip.className = "cy-wheel-tip";
+    wheelTip.textContent = (mac ? "\u2318" : "Ctrl") + " + scroll to zoom";
+    fig.appendChild(wheelTip);
     box.addEventListener("wheel", function (e) {
-      if (!e.ctrlKey && !e.metaKey) return;
+      if (!e.ctrlKey && !e.metaKey) {
+        wheelTip.classList.add("on");
+        clearTimeout(wheelTimer);
+        wheelTimer = setTimeout(function () { wheelTip.classList.remove("on"); }, 1200);
+        return;
+      }
+      wheelTip.classList.remove("on");
       e.preventDefault();
       var dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
       var r = box.getBoundingClientRect();
