@@ -14,13 +14,22 @@ and Windows (Git Bash), no network needed to build or view.
   (interface over IP); VLAN titles under the box; details panel lists each
   device's links; lock button shows the action (Unlock/Lock). Local demo:
   `examples/lab-workbook-demo.md`.
+- Changed 2026-11-10: zoom is Ctrl + wheel (or pinch), a plain wheel
+  scrolls the page and flashes a "Ctrl + scroll to zoom" hint; Expanded or
+  popped out a plain wheel zooms. Pan is right-drag (touch keeps one-finger
+  pan). Fit button (□) already existed. Fonts: Inter + JetBrains Mono
+  embedded from `vendor/fonts/` (subsets, ligatures off, ~370 KB per page),
+  tables use tabular digits, no italics anywhere in code. Checked in
+  headless Chromium (dark + light): fonts load, diagram waits for them,
+  wheel/hint/Expand/right-drag behave, 0 italic elements in code. Demos
+  now include a `show ip route` table and a font check block.
 - Checked in headless Chromium at 800, 1400, 1600 and 3840 px: pin/unpin,
   Esc, Expand while pinned, resize grip, reload restore, click-to-pin, hover
   both ways, pop out + dock (PiP and `window.open`), label placement.
   Not checked: Firefox/Safari, Windows, a real PiP window on a desktop.
-- Windows: tested by the user, works. Linux: checked in headless Chromium
-  (render, alignment, click panel, lock/unlock, wheel zoom, Copy layout,
-  Expand, GUI build) at widths from 1000 to 3840 px.
+- Windows: tested by the user before the 2026-11-10 changes, works. Linux:
+  checked in headless Chromium (render, alignment, click panel,
+  lock/unlock, zoom, Copy layout, Expand, GUI build) at 1000 to 3840 px.
 - Not verified: touch input.
 - Output goes to `outputs/<name>.html` (the GUI saves a copy there too).
   `outputs/` and `examples/` are gitignored. The smoke test builds its own
@@ -33,13 +42,19 @@ and Windows (Git Bash), no network needed to build or view.
 - Cytoscape.js is the only diagram tool. I tried D2 and removed it: its
   binaries were 35 MB (99% of the repo) and it gave less control.
 - Layouts are hand-placed (`x`/`y`), no ELK/dagre, to stay light.
-- Page column is `--page-width: 75rem`, diagrams match it, zoom never goes
-  above 100%.
+- Page column is `--page-width: 75rem`, diagrams match it. Fit (on load
+  and □) never goes above 100%; manual zoom goes 30% to 300%.
 - Diagram colors are bright on purpose (white labels, light links, tinted
   cards) so they read well on black.
 - Tried and dropped: Devices/Links tables under diagrams. The table styling
   in `doc-style.css` stays.
 - Cytoscape.js 3.34.4 is vendored (436 KB), hash in `vendor/SHA256SUMS`.
+- Fonts embedded, not linked: Inter (text) and JetBrains Mono (code, IPs,
+  terminal output), Latin subsets in `vendor/fonts/`. Inter over Roboto:
+  made for screens, aligned digits. Ligatures and code italics off so
+  commands show exactly as typed.
+- Ctrl + wheel to zoom and right-drag to pan, so normal page scrolling and
+  left clicks never move a diagram.
 
 ## Gotchas
 - Cytoscape's `width: label` is deprecated and left some nodes zero-sized
@@ -51,8 +66,14 @@ and Windows (Git Bash), no network needed to build or view.
 - Needs pandoc 3.1.1+ (`pandoc.json`).
 
 ## Next
-- Try pin/pop out on Windows and in Firefox.
+- Try pin/pop out, the new wheel/pan and the fonts on Windows and in
+  Firefox.
 - Ideas: hide a middle label on short links, minimum label size when
-  pinned narrow, click to copy an IP in the panel, find-a-device box.
-- Optional: PNG export, auto layout.
+  pinned narrow, auto layout.
+- Offered 2026-11-10, not wanted for now: middle-drag pan, keyboard zoom,
+  click to copy in the panel, find-a-device box, prompt/output styling in
+  console blocks, light/dark toggle, PNG export, browser test in `tests/`.
+- Open questions: show IPs in plain text/tables in JetBrains Mono
+  automatically (today only with backticks)? Brighter commands after a
+  Cisco `#` prompt (the highlighter grays them as comments)?
 - Environment type (homelab/dev/prod) not recorded, README says homelab docs.
