@@ -79,10 +79,10 @@ Laserwave syntax mapping (pandoc token classes): functions/commands/flags
 `.fu/.ex/.at` `#eb64b9` hot pink · keywords/imports `.kw/.cf/.im`
 `#40b4c4` maximum blue · strings `.st/.vs/.ch/.ss` `#b4dce7` powder blue
 · numbers/constants `.dv/.bn/.fl/.cn` `#b381c5` african violet · types
-`.dt` violet italic · variables `.va` `#ffffff` white ·
+`.dt` violet · variables `.va` `#ffffff` white ·
 builtins/preprocessor `.bu/.pp` `#ffe261` mustard · operators
 `.op/.ot/.sc` `#74dfc4` pearl aqua · comments/docs
-`.co/.an/.cv/.do/.in/.re/.wa` `#91889b` old lavender italic · errors
+`.co/.an/.cv/.do/.in/.re/.wa` `#91889b` old lavender (no italics in code) · errors
 `.er/.al` `#ff5555` red. A `code span` catch-all makes any unmapped class
 fall back to bright foreground instead of pandoc's dark-on-dark defaults.
 Note: true CSS `darkmagenta` (`#8b008b`) is too dark to read on black,

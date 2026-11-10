@@ -167,7 +167,7 @@ code span.va, code span.dv, code span.bn, code span.fl, code span.cn { color: #0
 code span.bu, code span.at, code span.ot, code span.sc, code span.dt { color: #0550ae; }
 code span.op { color: #57606a; }
 code span.co, code span.an, code span.cv, code span.do,
-code span.in, code span.re, code span.wa { color: #59636e; font-style: italic; }
+code span.in, code span.re, code span.wa { color: #59636e; font-style: normal; }
 code span.pp { color: #953800; }
 code span.er, code span.al { color: #d1242f; font-weight: bold; }
 @media (prefers-color-scheme: dark) {
@@ -184,13 +184,13 @@ code span.er, code span.al { color: #d1242f; font-weight: bold; }
   code span.st, code span.vs, code span.ch, code span.ss { color: #b4dce7; } /* strings: powder blue */
   code span.dv, code span.bn, code span.fl,
   code span.cn { color: #b381c5; }                              /* numbers, constants: african violet */
-  code span.dt { color: #b381c5; font-style: italic; }          /* types: african violet */
+  code span.dt { color: #b381c5; font-style: normal; }           /* types: african violet */
   code span.va { color: #ffffff; }                              /* variables: white */
   code span.bu, code span.pp { color: #ffe261; }                /* builtins, preprocessor: mustard */
   code span.at { color: #eb64b9; }                              /* flags/attributes: hot pink */
   code span.op, code span.ot, code span.sc { color: #74dfc4; }  /* operators: pearl aqua */
   code span.co, code span.an, code span.cv, code span.do,
-  code span.in, code span.re, code span.wa { color: #91889b; font-style: italic; } /* comments: old lavender */
+  code span.in, code span.re, code span.wa { color: #91889b; font-style: normal; } /* comments: old lavender */
   code span.er, code span.al { color: #ff5555; font-weight: bold; }
 }
 @media print {
