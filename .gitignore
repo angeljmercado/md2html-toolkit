@@ -6,7 +6,32 @@
 !cytoscape-runtime.html
 !gui.html
 
-# Local only
+# Local only: builds and private demo docs
 outputs/
 examples/
+
+# Python (gui.py)
 __pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Secrets and local settings
+.env
+.env.*
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Agent tooling (local settings)
+.claude/
+
+# Test and debug leftovers
+*.log
+screenshots/
