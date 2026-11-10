@@ -392,14 +392,16 @@
     cy.on("mouseout", "node, edge", function () { box.style.cursor = "default"; });
 
     // Ctrl + wheel zooms the diagram (trackpad pinch sends ctrlKey too).
-    // A plain wheel scrolls the page and shows a short hint.
+    // A plain wheel scrolls the page and shows a short hint. Expanded or
+    // popped out there's no page to scroll, so a plain wheel zooms there.
     var mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
     var wheelTip = document.createElement("div"), wheelTimer;
     wheelTip.className = "cy-wheel-tip";
     wheelTip.textContent = (mac ? "\u2318" : "Ctrl") + " + scroll to zoom";
     fig.appendChild(wheelTip);
     box.addEventListener("wheel", function (e) {
-      if (!e.ctrlKey && !e.metaKey) {
+      var own = fig.classList.contains("cy-full") || fig.classList.contains("cy-popped");
+      if (!own && !e.ctrlKey && !e.metaKey) {
         wheelTip.classList.add("on");
         clearTimeout(wheelTimer);
         wheelTimer = setTimeout(function () { wheelTip.classList.remove("on"); }, 1200);
