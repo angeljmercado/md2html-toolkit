@@ -8,18 +8,18 @@
 .cy-canvas canvas { left: 0; top: 0; }
 .cy-title {
   position: absolute; top: .6rem; left: .9rem; z-index: 2;
-  font: 600 .75rem/1 system-ui, sans-serif; letter-spacing: .06em;
+  font: 600 .75rem/1 var(--font-sans, system-ui, sans-serif); letter-spacing: .06em;
   text-transform: uppercase; color: #c9c9d4; pointer-events: none;
 }
 .cy-hint {
   position: absolute; left: .9rem; bottom: .6rem; z-index: 2;
-  font: .7rem/1 system-ui, sans-serif; color: #9a9aa8; pointer-events: none;
+  font: .7rem/1 var(--font-sans, system-ui, sans-serif); color: #9a9aa8; pointer-events: none;
 }
 /* "Ctrl + scroll to zoom", shown briefly when a plain wheel scrolls past a diagram */
 .cy-wheel-tip {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3;
   padding: .45rem .9rem; border-radius: 8px; background: rgba(0,0,0,.78); color: #f8f8f2;
-  border: 1px solid #3a3a46; font: 600 .85rem/1.2 system-ui, sans-serif;
+  border: 1px solid #3a3a46; font: 600 .85rem/1.2 var(--font-sans, system-ui, sans-serif);
   pointer-events: none; opacity: 0; transition: opacity .2s;
 }
 .cy-wheel-tip.on { opacity: 1; }
@@ -27,7 +27,7 @@
 .cy-tools button {
   width: 1.8rem; height: 1.8rem; border-radius: 6px; cursor: pointer;
   background: #15151c; color: #ececf2; border: 1px solid #3a3a46;
-  font: 600 .9rem/1 system-ui, sans-serif;
+  font: 600 .9rem/1 var(--font-sans, system-ui, sans-serif);
 }
 /* Pin: the diagram stays on screen while the text scrolls. Wide screens dock
    it on the right, narrow ones on top. The grip on its edge resizes it. */
@@ -85,13 +85,13 @@
 .cy-ref:hover, .cy-ref:focus, .cy-ref.cy-ref-hl { background: var(--hover-bg); color: var(--accent); outline: none; }
 .cy-tip {
   position: fixed; z-index: 1100; pointer-events: none; max-width: 22rem;
-  padding: .35rem .6rem; border-radius: 6px; font: .78rem/1.35 system-ui, sans-serif;
+  padding: .35rem .6rem; border-radius: 6px; font: .78rem/1.35 var(--font-sans, system-ui, sans-serif);
   background: #0d0d12; color: #f8f8f2; border: 1px solid #3a3a46; border-left: 3px solid var(--cy-accent, #eb64b9);
   box-shadow: 0 6px 20px rgba(0,0,0,.45);
 }
 .cy-tip[hidden] { display: none; }
 .cy-tip b { font-weight: 600; }
-.cy-tip span { color: #74dfc4; font-family: ui-monospace, monospace; }
+.cy-tip span { color: #74dfc4; font-family: var(--font-mono, ui-monospace, monospace); }
 @media print {
   .cy-figure.cy-pinned { position: relative; width: auto; height: auto; }
   .cy-figure.cy-pinned .cy-canvas { height: 480px !important; }
@@ -105,7 +105,7 @@
   max-height: calc(100% - 4rem); overflow: auto; padding: .9rem 1rem;
   background: rgba(13,13,18,.94); color: #f8f8f2; border: 1px solid #3a3a46;
   border-top: 2px solid var(--cy-accent, #eb64b9); border-radius: 8px;
-  box-shadow: 0 8px 28px rgba(0,0,0,.6); font: .85rem/1.4 system-ui, sans-serif;
+  box-shadow: 0 8px 28px rgba(0,0,0,.6); font: .85rem/1.4 var(--font-sans, system-ui, sans-serif);
 }
 .cy-panel[hidden] { display: none; }
 .cy-panel h4 { margin: 0; font-size: 1rem; color: #f8f8f2; }
@@ -120,10 +120,10 @@
   text-transform: uppercase; color: #9a9aa8;
 }
 .cy-panel .cy-links { grid-template-columns: fit-content(55%) 1fr; }
-.cy-panel .cy-links dt { overflow-wrap: anywhere; color: #74dfc4; font-family: ui-monospace, monospace; font-size: .8rem; }
+.cy-panel .cy-links dt { overflow-wrap: anywhere; color: #74dfc4; font-family: var(--font-mono, ui-monospace, monospace); font-size: .8rem; }
 .cy-panel .cy-links dd { color: #f8f8f2; font-family: inherit; font-size: .85rem; }
-.cy-panel .cy-far { color: #b3b3bd; font-family: ui-monospace, monospace; font-size: .76rem; }
-.cy-panel dd { color: #74dfc4; font-family: ui-monospace, monospace; font-size: .8rem; overflow-wrap: anywhere; }
+.cy-panel .cy-far { color: #b3b3bd; font-family: var(--font-mono, ui-monospace, monospace); font-size: .76rem; }
+.cy-panel dd { color: #74dfc4; font-family: var(--font-mono, ui-monospace, monospace); font-size: .8rem; overflow-wrap: anywhere; }
 </style>
 <script>
 /*CYTOSCAPE_LIB*/
@@ -147,7 +147,7 @@
         "shape": "data(shape)", "background-color": "data(fill)",
         "border-width": 2, "border-color": "data(color)",
         "label": "data(text)", "color": "#ffffff", "font-size": 15,
-        "font-family": "system-ui, sans-serif", "text-wrap": "wrap",
+        "font-family": "Inter, system-ui, sans-serif", "text-wrap": "wrap",
         "text-valign": "center", "text-halign": "center", "line-height": 1.35,
         "width": "data(w)", "height": "data(h)",
         "underlay-color": "data(color)", "underlay-opacity": 0,
@@ -166,7 +166,7 @@
       { selector: "edge", style: {
         "width": 2, "line-color": "#a3a3b3", "curve-style": "bezier",
         "target-arrow-shape": "none", "label": "data(label)",
-        "font-size": 12, "color": "#ffffff", "font-family": "system-ui, sans-serif",
+        "font-size": 12, "color": "#ffffff", "font-family": "Inter, system-ui, sans-serif",
         "text-background-color": "#000", "text-background-opacity": 1,
         "text-background-padding": 3, "text-background-shape": "roundrectangle",
         "source-label": "data(src)", "target-label": "data(dst)",
@@ -178,7 +178,7 @@
       } },
       { selector: "edge[arrow]", style: { "target-arrow-shape": "triangle", "target-arrow-color": "#a3a3b3", "arrow-scale": 1.2 } },
       { selector: "edge[dashed]", style: { "line-style": "dashed", "line-dash-pattern": [6, 4] } },
-      { selector: "edge[src], edge[dst]", style: { "font-family": "ui-monospace, monospace" } },
+      { selector: "edge[src], edge[dst]", style: { "font-family": "'JetBrains Mono', ui-monospace, monospace" } },
       { selector: ".faded", style: { "opacity": 0.18 } },
       { selector: "node:selected, node.hl", style: {
         "underlay-opacity": 0.28, "border-width": 2.5 } },
@@ -275,542 +275,556 @@
   window.mdCy = { make: make, elements: elements, style: style };
   if (typeof document === "undefined" || !document.querySelectorAll) return;
 
-  function esc(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+  // Diagrams draw their text on a canvas and cache it, so wait for the
+  // embedded fonts first. A browser without the Font Loading API, or a slow
+  // load, starts anyway after a short wait with the fallback fonts.
+  var fontsReady = document.fonts && document.fonts.load ? Promise.race([
+    Promise.all(['15px "Inter"', '12px "JetBrains Mono"'].map(function (f) {
+      return document.fonts.load(f).catch(function () {});
+    })),
+    new Promise(function (r) { setTimeout(r, 1500); })
+  ]) : Promise.resolve();
+  fontsReady.then(start);
 
-  // localStorage can be missing or blocked (private window, file:// rules).
-  var store = {
-    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-    set: function (k, v) {
-      try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {}
-    }
-  };
-  var PIN_KEY = "md2html.pin:" + location.pathname;
-  var IP = /(?<![\d.])\d{1,3}(?:\.\d{1,3}){3}(?!\d|\.\d)/g;
-  var diagrams = [], pinnedD = null;
-  function wide() { return window.matchMedia("(min-width: 1100px)").matches; }
+  function start() {
 
-  // Pinned pane size is a preference shared by every page.
-  (function () {
-    var w = parseInt(store.get("md2html.pinW"), 10), h = parseInt(store.get("md2html.pinH"), 10);
-    var root = document.documentElement.style;
-    if (w > 0) root.setProperty("--cy-pin-w", "min(" + w + "px, 75vw)");
-    if (h > 0) root.setProperty("--cy-pin-h", "min(" + h + "px, 75vh)");
-  })();
+    function esc(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
 
-  // Run fn (which changes the layout) without moving the text you are reading.
-  function keepPlace(fn, anchor) {
-    var top = anchor ? anchor.getBoundingClientRect().top : 0, kids = document.body.children;
-    for (var i = 0; !anchor && i < kids.length; i++) {
-      var el = kids[i], cs = getComputedStyle(el);
-      if (cs.position === "fixed" || cs.display === "none" || el.classList.contains("cy-figure")) continue;
-      var r = el.getBoundingClientRect();
-      if (r.height && r.bottom > 0) { anchor = el; top = r.top; break; }
-    }
-    fn();
-    if (anchor) window.scrollBy({ top: anchor.getBoundingClientRect().top - top, behavior: "instant" });
-  }
-
-  function placeholder(text, label, fn) {
-    var ph = document.createElement("div"), b = document.createElement("button");
-    ph.className = "cy-ph";
-    ph.appendChild(document.createElement("span")).textContent = text;
-    b.textContent = label;
-    b.addEventListener("click", fn);
-    ph.appendChild(b);
-    return ph;
-  }
-
-  document.querySelectorAll(".cy-figure").forEach(function (fig, index) {
-    var m = JSON.parse(fig.querySelector('script[type="application/json"]').textContent);
-    var box = fig.querySelector(".cy-canvas");
-    box.style.height = (m.height || 480) + "px";  // temporary, autoHeight() sets the real one
-    var cy = make(m, box);
-    // Marks the figure's place in the page, even while it is popped out.
-    var home = document.createComment("cy-figure");
-    fig.parentNode.insertBefore(home, fig);
-    // Fit to the box but never go above 100%, or on a big screen the
-    // diagram looks zoomed in.
-    function fitView() {
-      cy.fit(undefined, 40);
-      if (cy.zoom() > 1) { cy.zoom(1); cy.center(); }
-    }
-    fitView();
-    var panel = fig.querySelector(".cy-panel");
-
-    function show(el) {
-      var d = el.data(), rows = "";
-      Object.keys(d.details).forEach(function (k) {
-        rows += "<dt>" + esc(k) + "</dt><dd>" + esc(String(d.details[k])) + "</dd>";
-      });
-      // Links: this end's interface/IP, then the device at the other end.
-      var one = function (t) { return t.replace(/\n/g, " "); }, links = "";
-      if (el.isEdge()) {
-        [["source", "src"], ["target", "dst"]].forEach(function (p) {
-          var n = el[p[0]](), t = el.data(p[1]);
-          links += "<dt>" + esc(n.data("name")) + "</dt><dd>" + (t ? esc(one(t)) : "&ndash;") + "</dd>";
-        });
-      } else {
-        el.connectedEdges().forEach(function (e) {
-          var mine = e.source().same(el), other = mine ? e.target() : e.source();
-          var here = e.data(mine ? "src" : "dst"), there = e.data(mine ? "dst" : "src");
-          links += "<dt>" + (here ? esc(one(here)) : "&ndash;") + "</dt><dd>&rarr; " + esc(other.data("name")) +
-                   (there ? ' <span class="cy-far">' + esc(one(there)) + "</span>" : "") + "</dd>";
-        });
-      }
-      panel.style.setProperty("--cy-accent", d.color || "#eb64b9");
-      panel.innerHTML = "<h4>" + esc(d.name) + "</h4>" +
-        (d.sub ? '<div class="cy-sub">' + esc(d.sub) + "</div>" : "") +
-        (rows ? "<dl>" + rows + "</dl>" : (links ? "" : '<div class="cy-sub">No details.</div>')) +
-        (links ? '<div class="cy-sec">' + (el.isEdge() ? "Ends" : "Links") + '</div><dl class="cy-links">' + links + "</dl>" : "");
-      panel.hidden = false;
-    }
-
-    function nodes(ids) {
-      var c = cy.collection();
-      ids.forEach(function (id) { c = c.union(cy.getElementById(id)); });
-      return c;
-    }
-    // One node: it and its links. Several: them and the links between them.
-    function highlight(ids) {
-      var n = nodes(ids);
-      if (n.empty()) return;
-      n = n.union(n.descendants());
-      var hood = ids.length === 1 ? n.closedNeighborhood() : n.union(n.edgesWith(n));
-      cy.elements().not(hood).not(n.ancestors()).addClass("faded");
-      hood.addClass("hl");
-    }
-    function clear() { cy.elements().removeClass("faded hl"); markRefs(null); }
-
-    cy.on("tap", "node, edge", function (e) { show(e.target); });
-    cy.on("tap", function (e) { if (e.target === cy) panel.hidden = true; });
-    cy.on("mouseover", "node:childless", function (e) {
-      highlight([e.target.id()]);
-      markRefs(d, e.target.id());
-    });
-    cy.on("mouseout", "node", clear);
-    cy.on("mouseover", "node, edge", function () { box.style.cursor = "pointer"; });
-    cy.on("mouseout", "node, edge", function () { box.style.cursor = "default"; });
-
-    // Ctrl + wheel zooms the diagram (trackpad pinch sends ctrlKey too).
-    // A plain wheel scrolls the page and shows a short hint. Expanded or
-    // popped out there's no page to scroll, so a plain wheel zooms there.
-    var mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
-    var wheelTip = document.createElement("div"), wheelTimer;
-    wheelTip.className = "cy-wheel-tip";
-    wheelTip.textContent = (mac ? "\u2318" : "Ctrl") + " + scroll to zoom";
-    fig.appendChild(wheelTip);
-    box.addEventListener("wheel", function (e) {
-      var own = fig.classList.contains("cy-full") || fig.classList.contains("cy-popped");
-      if (!own && !e.ctrlKey && !e.metaKey) {
-        wheelTip.classList.add("on");
-        clearTimeout(wheelTimer);
-        wheelTimer = setTimeout(function () { wheelTip.classList.remove("on"); }, 1200);
-        return;
-      }
-      wheelTip.classList.remove("on");
-      e.preventDefault();
-      var dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
-      var r = box.getBoundingClientRect();
-      cy.zoom({ level: cy.zoom() * Math.pow(1.0018, -dy),
-                renderedPosition: { x: e.clientX - r.left, y: e.clientY - r.top } });
-    }, { passive: false });
-
-    // Right-drag pans, so a left click or drag never moves the view by accident.
-    // Touch keeps Cytoscape's one-finger pan.
-    var panFrom = null;
-    box.addEventListener("pointerdown", function (e) {
-      cy.userPanningEnabled(e.pointerType === "touch");
-      if (e.pointerType !== "mouse" || e.button !== 2) return;
-      panFrom = { x: e.clientX, y: e.clientY };
-      box.setPointerCapture(e.pointerId);
-      box.style.cursor = "grabbing";
-    }, true);
-    box.addEventListener("pointermove", function (e) {
-      if (!panFrom || !box.hasPointerCapture(e.pointerId)) return;
-      cy.panBy({ x: e.clientX - panFrom.x, y: e.clientY - panFrom.y });
-      panFrom = { x: e.clientX, y: e.clientY };
-    });
-    box.addEventListener("lostpointercapture", function () {
-      if (!panFrom) return;
-      panFrom = null;
-      box.style.cursor = "default";
-    });
-    box.addEventListener("contextmenu", function (e) { e.preventDefault(); });
-
-    // Locked by default so a stray drag doesn't move anything.
-    var lockBtn = fig.querySelector(".cy-lock");
-    var copyBtn = fig.querySelector(".cy-copy");
-    var pinBtn = fig.querySelector(".cy-pin");
-    var popBtn = fig.querySelector(".cy-pop");
-
-    // Copy the block's JSON with the current positions, to paste back into
-    // the markdown after moving things around.
-    function copyLayout() {
-      var out = JSON.parse(JSON.stringify(m));
-      out.nodes.forEach(function (n) {
-        var el = cy.getElementById(n.id);
-        if (el.isParent()) { delete n.x; delete n.y; return; }
-        n.x = Math.round(el.position("x")); n.y = Math.round(el.position("y"));
-      });
-      var text = JSON.stringify(out, null, 2);
-      var doc = fig.ownerDocument, win = doc.defaultView;  // can be the pop-out window
-      function done() {
-        copyBtn.textContent = "Copied";
-        setTimeout(function () { copyBtn.textContent = "Copy layout"; }, 1500);
-      }
-      if (win.navigator.clipboard && win.isSecureContext) {
-        win.navigator.clipboard.writeText(text).then(done);
-      } else {
-        var ta = doc.createElement("textarea");
-        ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
-        doc.body.appendChild(ta); ta.select();
-        try { doc.execCommand("copy"); done(); } catch (e) {}
-        doc.body.removeChild(ta);
-      }
-    }
-    function setLocked(on) {
-      cy.autoungrabify(on);
-      lockBtn.textContent = on ? "Unlock" : "Lock";
-      lockBtn.classList.toggle("open", !on);
-      lockBtn.title = on ? "Unlock to move items" : "Lock items in place";
-      copyBtn.hidden = on;
-    }
-    setLocked(true);
-
-    // Expanded, pinned or popped out: the size comes from the window, not the diagram.
-    function docked() {
-      return fig.classList.contains("cy-full") || fig.classList.contains("cy-pinned") ||
-             fig.classList.contains("cy-popped");
-    }
-    // Box height follows the diagram's shape, capped at 90% of the window.
-    function autoHeight() {
-      if (typeof m.height === "number" || docked()) return;
-      var bb = cy.elements().boundingBox({ includeLabels: true });
-      var h = Math.min((box.clientWidth - 80) * bb.h / bb.w, bb.h) + 80;
-      box.style.height = Math.round(Math.max(320, Math.min(h, window.innerHeight * 0.9))) + "px";
-      cy.resize(); fitView();
-    }
-    // The box is the same width as the page column. Expand is for a closer look.
-    function refit() {
-      if (docked()) { cy.resize(); fitView(); return; }
-      cy.resize(); fitView();
-      autoHeight();
-    }
-    refit();
-    window.addEventListener("resize", refit);
-
-    // Expand fills the window, Esc closes it.
-    var expandBtn = fig.querySelector(".cy-expand");
-    function setExpanded(on) {
-      fig.classList.toggle("cy-full", on);
-      expandBtn.textContent = on ? "Close" : "Expand";
-      document.documentElement.style.overflow = on ? "hidden" : "";
-      setTimeout(function () { refit(); cy.resize(); fitView(); }, 0);
-    }
-    if (window.ResizeObserver) new ResizeObserver(function () { cy.resize(); }).observe(box);
-
-    // Pin keeps the diagram on screen (right side, or top on narrow screens)
-    // while the page scrolls. One at a time; remembered for this page.
-    var pinPh = null;
-    function setPinned(on, anchor) {
-      if (on === (pinnedD === d) || (on && popWin)) return;
-      if (on && pinnedD) pinnedD.pin(false);
-      keepPlace(function () {
-        if (on) {
-          pinPh = placeholder("Pinned" + (m.title ? ": " + m.title : " diagram"), "Unpin",
-                              function () { setPinned(false); });
-          fig.parentNode.insertBefore(pinPh, fig);
-        } else if (pinPh) { pinPh.remove(); pinPh = null; }
-        fig.classList.toggle("cy-pinned", on);
-        document.body.classList.toggle("cy-pin-open", on);
-      }, anchor);
-      pinnedD = on ? d : null;
-      pinBtn.textContent = on ? "Unpin" : "Pin";
-      pinBtn.classList.toggle("on", on);
-      store.set(PIN_KEY, on ? String(index) : null);
-      setTimeout(function () { if (on) { cy.resize(); fitView(); } else refit(); }, 0);
-    }
-
-    // Drag the pinned pane's edge to resize it.
-    var grip = document.createElement("div");
-    grip.className = "cy-grip";
-    grip.title = "Drag to resize";
-    fig.appendChild(grip);
-    grip.addEventListener("pointerdown", function (e) {
-      e.preventDefault();
-      grip.setPointerCapture(e.pointerId);
-      grip.classList.add("drag");
-    });
-    grip.addEventListener("pointermove", function (e) {
-      if (!grip.hasPointerCapture(e.pointerId)) return;
-      var root = document.documentElement.style;
-      if (wide()) {
-        var w = Math.round(Math.max(320, Math.min(window.innerWidth - e.clientX, window.innerWidth * 0.75)));
-        root.setProperty("--cy-pin-w", w + "px"); store.set("md2html.pinW", String(w));
-      } else {
-        var h = Math.round(Math.max(160, Math.min(e.clientY, window.innerHeight * 0.75)));
-        root.setProperty("--cy-pin-h", h + "px"); store.set("md2html.pinH", String(h));
-      }
-    });
-    grip.addEventListener("lostpointercapture", function () { grip.classList.remove("drag"); });
-
-    // Pop out moves the diagram into its own window: an always-on-top
-    // Picture-in-Picture window where the browser has one (Chrome, Edge),
-    // a normal pop-up otherwise. Closing that window brings it back.
-    var popWin = null, popPh = null;
-    function popOut() {
-      if (popWin) { dock(); return; }
-      if (pinnedD === d) setPinned(false);
-      if (fig.classList.contains("cy-full")) setExpanded(false);
-      if (window.documentPictureInPicture) {
-        documentPictureInPicture.requestWindow({ width: 960, height: 640 })
-          .then(attach, function () { attach(openWin()); });
-      } else attach(openWin());
-    }
-    function openWin() {
-      return window.open("", "", "popup,width=1000,height=700");
-    }
-    function attach(w) {
-      if (!w) return;  // pop-up blocked
-      popWin = w;
-      var doc = w.document;
-      doc.title = m.title || document.title;
-      document.querySelectorAll('style, link[rel="stylesheet"]').forEach(function (s) {
-        doc.head.appendChild(s.cloneNode(true));
-      });
-      doc.body.style.cssText = "margin:0;padding:0;max-width:none;background:#000;overflow:hidden";
-      keepPlace(function () {
-        popPh = placeholder((m.title ? m.title + ": " : "") + "open in its own window", "Bring back", dock);
-        fig.parentNode.insertBefore(popPh, fig);
-        doc.body.appendChild(fig);
-      });
-      fig.classList.add("cy-popped");
-      popBtn.textContent = "Dock";
-      popBtn.title = "Put the diagram back in the page";
-      cy.mount(box);  // rebinds Cytoscape's events to the new window
-      w.addEventListener("resize", function () { cy.resize(); });
-      w.addEventListener("pagehide", dock);
-      setTimeout(function () { cy.resize(); fitView(); }, 50);
-    }
-    function dock() {
-      if (!popWin) return;
-      var w = popWin;
-      popWin = null;
-      keepPlace(function () {
-        popPh.parentNode.insertBefore(fig, popPh);
-        popPh.remove(); popPh = null;
-      });
-      fig.classList.remove("cy-popped");
-      popBtn.textContent = "Pop out";
-      popBtn.title = "Open the diagram in its own window";
-      cy.mount(box);
-      setTimeout(refit, 0);
-      try { if (!w.closed) w.close(); } catch (e) {}
-    }
-    window.addEventListener("pagehide", function () { if (popWin) popWin.close(); });
-
-    // Text references: the diagram resolves [x]{node=id} and auto-linked IPs.
-    // An IP belongs to a device when it is in its "sub", on its end of a link,
-    // or written as a CIDR (10.10.10.1/24). A plain mention in details, like
-    // "Gateway: 10.10.10.1", only counts if nothing stronger claims it.
-    // Network addresses (10.0.12.0/30) are not devices and are skipped.
-    var own = {}, weak = {};
-    function isNetwork(ip, len) {
-      if (!(len < 31)) return false;
-      var n = ip.split(".").reduce(function (a, o) { return a * 256 + Number(o); }, 0);
-      return n % Math.pow(2, 32 - len) === 0;
-    }
-    function addIps(s, id, strong) {
-      String(s).replace(/(?<![\d.])(\d{1,3}(?:\.\d{1,3}){3})(?:\/(\d{1,2}))?(?!\d|\.\d)/g, function (all, ip, len) {
-        if (len !== undefined && isNetwork(ip, Number(len))) return all;
-        var map = strong || len !== undefined ? own : weak;
-        (map[ip] = map[ip] || {})[id] = true;
-        return all;
-      });
-    }
-    (m.nodes || []).forEach(function (n) {
-      addIps(n.sub || "", n.id, true);
-      Object.keys(n.details || {}).forEach(function (k) { addIps(n.details[k], n.id, false); });
-    });
-    (m.edges || []).forEach(function (e) {
-      if (e.src) addIps(e.src, e.from, true);
-      if (e.dst) addIps(e.dst, e.to, true);
-    });
-
-    // Bring the nodes into view inside the canvas if they are outside it.
-    function reveal(n) {
-      var bb = n.renderedBoundingBox(), W = box.clientWidth, H = box.clientHeight;
-      if (bb.x1 < 0 || bb.y1 < 0 || bb.x2 > W || bb.y2 > H) cy.animate({ center: { eles: n } }, { duration: 250 });
-    }
-    function onScreen() {
-      if (popWin || pinnedD === d) return true;
-      var r = fig.getBoundingClientRect();
-      return r.bottom > 120 && r.top < window.innerHeight - 120;
-    }
-
-    fig.querySelector(".cy-tools").addEventListener("click", function (e) {
-      var a = e.target.getAttribute("data-a");
-      if (a === "expand") setExpanded(!fig.classList.contains("cy-full"));
-      if (a === "lock") setLocked(!cy.autoungrabify());
-      if (a === "copy") copyLayout();
-      if (a === "pin") setPinned(pinnedD !== d);
-      if (a === "pop") popOut();
-      if (a === "fit") fitView();
-      if (a === "in") cy.zoom({ level: cy.zoom() * 1.25, renderedPosition: { x: box.clientWidth / 2, y: box.clientHeight / 2 } });
-      if (a === "out") cy.zoom({ level: cy.zoom() * 0.8, renderedPosition: { x: box.clientWidth / 2, y: box.clientHeight / 2 } });
-    });
-
-    var d = {
-      fig: fig, cy: cy, home: home, autolink: m.autolink === true,
-      pin: setPinned, expand: setExpanded, highlight: highlight, clear: clear,
-      active: function () { return !!popWin || pinnedD === d; },
-      // An IP auto-links only when exactly one device in this diagram has it.
-      ipNodes: function (ip) {
-        var k = Object.keys(own[ip] || weak[ip] || {});
-        return k.length === 1 ? k : null;
-      },
-      // Clicking a reference selects the node and opens its details. If the
-      // diagram is off screen it gets pinned, so you keep your place.
-      select: function (ids, from) {
-        var n = nodes(ids);
-        if (n.empty()) return;
-        if (!onScreen()) setPinned(true, from);
-        cy.elements().unselect();
-        n.select();
-        show(n[0]);
-        setTimeout(function () { reveal(n); }, 60);
+    // localStorage can be missing or blocked (private window, file:// rules).
+    var store = {
+      get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+      set: function (k, v) {
+        try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {}
       }
     };
-    diagrams.push(d);
-  });
+    var PIN_KEY = "md2html.pin:" + location.pathname;
+    var IP = /(?<![\d.])\d{1,3}(?:\.\d{1,3}){3}(?!\d|\.\d)/g;
+    var diagrams = [], pinnedD = null;
+    function wide() { return window.matchMedia("(min-width: 1100px)").matches; }
 
-  window.mdCy.diagrams = diagrams;  // for debugging from the console
-  if (!diagrams.length) return;
+    // Pinned pane size is a preference shared by every page.
+    (function () {
+      var w = parseInt(store.get("md2html.pinW"), 10), h = parseInt(store.get("md2html.pinH"), 10);
+      var root = document.documentElement.style;
+      if (w > 0) root.setProperty("--cy-pin-w", "min(" + w + "px, 75vw)");
+      if (h > 0) root.setProperty("--cy-pin-h", "min(" + h + "px, 75vh)");
+    })();
 
-  // Esc closes Expand first, then unpins.
-  document.addEventListener("keydown", function (e) {
-    if (e.key !== "Escape") return;
-    var full = diagrams.filter(function (d) { return d.fig.classList.contains("cy-full"); })[0];
-    if (full) full.expand(false);
-    else if (pinnedD) pinnedD.pin(false);
-  });
-
-  // Which diagram and node ids a reference points at. A pinned or popped-out
-  // diagram wins, then the nearest one above the reference, then any.
-  function idsFor(ref, d) {
-    var node = ref.getAttribute("data-node");
-    if (node) {
-      var ids = node.trim().split(/\s+/);
-      return ids.every(function (id) { return d.cy.getElementById(id).nonempty(); }) ? ids : null;
+    // Run fn (which changes the layout) without moving the text you are reading.
+    function keepPlace(fn, anchor) {
+      var top = anchor ? anchor.getBoundingClientRect().top : 0, kids = document.body.children;
+      for (var i = 0; !anchor && i < kids.length; i++) {
+        var el = kids[i], cs = getComputedStyle(el);
+        if (cs.position === "fixed" || cs.display === "none" || el.classList.contains("cy-figure")) continue;
+        var r = el.getBoundingClientRect();
+        if (r.height && r.bottom > 0) { anchor = el; top = r.top; break; }
+      }
+      fn();
+      if (anchor) window.scrollBy({ top: anchor.getBoundingClientRect().top - top, behavior: "instant" });
     }
-    var ip = ref.getAttribute("data-ip");
-    return ip && d.autolink ? d.ipNodes(ip) : null;
-  }
-  function resolve(ref) {
-    var cands = diagrams.filter(function (d) { return idsFor(ref, d); });
-    if (!cands.length) return null;
-    var pick = cands.filter(function (d) { return d.active(); })[0];
-    if (!pick) cands.forEach(function (d) {
-      if (d.home.compareDocumentPosition(ref) & Node.DOCUMENT_POSITION_FOLLOWING) pick = d;
-    });
-    pick = pick || cands[0];
-    return { d: pick, ids: idsFor(ref, pick) };
-  }
-  // Hovering a device marks the text that mentions it.
-  function markRefs(d, id) {
-    document.querySelectorAll(".cy-ref.cy-ref-hl").forEach(function (x) { x.classList.remove("cy-ref-hl"); });
-    if (!d) return;
-    document.querySelectorAll(".cy-ref").forEach(function (ref) {
-      var r = resolve(ref);
-      if (r && r.d === d && r.ids.indexOf(id) >= 0) ref.classList.add("cy-ref-hl");
-    });
-  }
 
-  // "autolink": true in a diagram turns IPs in the text and code that match
-  // exactly one of its devices into references.
-  if (diagrams.some(function (d) { return d.autolink; })) {
-    var skip = ".cy-figure, .cy-ref, nav#TOC, a, button, script, style, textarea, .doc-footer, .cy-ph";
-    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), hits = [], t;
-    while ((t = walker.nextNode())) {
-      IP.lastIndex = 0;
-      if (IP.test(t.nodeValue) && t.parentElement && !t.parentElement.closest(skip)) hits.push(t);
+    function placeholder(text, label, fn) {
+      var ph = document.createElement("div"), b = document.createElement("button");
+      ph.className = "cy-ph";
+      ph.appendChild(document.createElement("span")).textContent = text;
+      b.textContent = label;
+      b.addEventListener("click", fn);
+      ph.appendChild(b);
+      return ph;
     }
-    hits.forEach(function (t) {
-      var text = t.nodeValue, frag = document.createDocumentFragment(), last = 0, any = false;
-      text.replace(IP, function (ip, at) {
-        if (!diagrams.some(function (d) { return d.autolink && d.ipNodes(ip); })) return ip;
-        frag.appendChild(document.createTextNode(text.slice(last, at)));
-        var s = document.createElement("span");
-        s.className = "cy-ref";
-        s.setAttribute("data-ip", ip);
-        s.textContent = ip;
-        frag.appendChild(s);
-        last = at + ip.length; any = true;
-        return ip;
+
+    document.querySelectorAll(".cy-figure").forEach(function (fig, index) {
+      var m = JSON.parse(fig.querySelector('script[type="application/json"]').textContent);
+      var box = fig.querySelector(".cy-canvas");
+      box.style.height = (m.height || 480) + "px";  // temporary, autoHeight() sets the real one
+      var cy = make(m, box);
+      // Marks the figure's place in the page, even while it is popped out.
+      var home = document.createComment("cy-figure");
+      fig.parentNode.insertBefore(home, fig);
+      // Fit to the box but never go above 100%, or on a big screen the
+      // diagram looks zoomed in.
+      function fitView() {
+        cy.fit(undefined, 40);
+        if (cy.zoom() > 1) { cy.zoom(1); cy.center(); }
+      }
+      fitView();
+      var panel = fig.querySelector(".cy-panel");
+
+      function show(el) {
+        var d = el.data(), rows = "";
+        Object.keys(d.details).forEach(function (k) {
+          rows += "<dt>" + esc(k) + "</dt><dd>" + esc(String(d.details[k])) + "</dd>";
+        });
+        // Links: this end's interface/IP, then the device at the other end.
+        var one = function (t) { return t.replace(/\n/g, " "); }, links = "";
+        if (el.isEdge()) {
+          [["source", "src"], ["target", "dst"]].forEach(function (p) {
+            var n = el[p[0]](), t = el.data(p[1]);
+            links += "<dt>" + esc(n.data("name")) + "</dt><dd>" + (t ? esc(one(t)) : "&ndash;") + "</dd>";
+          });
+        } else {
+          el.connectedEdges().forEach(function (e) {
+            var mine = e.source().same(el), other = mine ? e.target() : e.source();
+            var here = e.data(mine ? "src" : "dst"), there = e.data(mine ? "dst" : "src");
+            links += "<dt>" + (here ? esc(one(here)) : "&ndash;") + "</dt><dd>&rarr; " + esc(other.data("name")) +
+                     (there ? ' <span class="cy-far">' + esc(one(there)) + "</span>" : "") + "</dd>";
+          });
+        }
+        panel.style.setProperty("--cy-accent", d.color || "#eb64b9");
+        panel.innerHTML = "<h4>" + esc(d.name) + "</h4>" +
+          (d.sub ? '<div class="cy-sub">' + esc(d.sub) + "</div>" : "") +
+          (rows ? "<dl>" + rows + "</dl>" : (links ? "" : '<div class="cy-sub">No details.</div>')) +
+          (links ? '<div class="cy-sec">' + (el.isEdge() ? "Ends" : "Links") + '</div><dl class="cy-links">' + links + "</dl>" : "");
+        panel.hidden = false;
+      }
+
+      function nodes(ids) {
+        var c = cy.collection();
+        ids.forEach(function (id) { c = c.union(cy.getElementById(id)); });
+        return c;
+      }
+      // One node: it and its links. Several: them and the links between them.
+      function highlight(ids) {
+        var n = nodes(ids);
+        if (n.empty()) return;
+        n = n.union(n.descendants());
+        var hood = ids.length === 1 ? n.closedNeighborhood() : n.union(n.edgesWith(n));
+        cy.elements().not(hood).not(n.ancestors()).addClass("faded");
+        hood.addClass("hl");
+      }
+      function clear() { cy.elements().removeClass("faded hl"); markRefs(null); }
+
+      cy.on("tap", "node, edge", function (e) { show(e.target); });
+      cy.on("tap", function (e) { if (e.target === cy) panel.hidden = true; });
+      cy.on("mouseover", "node:childless", function (e) {
+        highlight([e.target.id()]);
+        markRefs(d, e.target.id());
       });
-      if (!any) return;
-      frag.appendChild(document.createTextNode(text.slice(last)));
-      t.parentNode.replaceChild(frag, t);
-    });
-  }
-  // Written references can be reached with Tab; Enter opens them.
-  document.querySelectorAll(".cy-ref[data-node]").forEach(function (ref) { ref.tabIndex = 0; });
+      cy.on("mouseout", "node", clear);
+      cy.on("mouseover", "node, edge", function () { box.style.cursor = "pointer"; });
+      cy.on("mouseout", "node, edge", function () { box.style.cursor = "default"; });
 
-  // Hover or focus: highlight in the diagram and show a small label.
-  var tip = document.createElement("div");
-  tip.className = "cy-tip";
-  tip.hidden = true;
-  document.body.appendChild(tip);
-  var hot = null;
-  function enter(ref) {
-    if (hot && hot.ref === ref) return;
-    leave();
-    var r = resolve(ref);
-    if (!r) return;
-    hot = { ref: ref, d: r.d };
-    r.d.highlight(r.ids);
-    var html = "";
-    r.ids.forEach(function (id) {
-      var data = r.d.cy.getElementById(id).data();
-      html += (html ? "<br>" : "") + "<b>" + esc(data.name) + "</b>" + (data.sub ? " <span>" + esc(data.sub) + "</span>" : "");
-      if (!tip.style.getPropertyValue("--cy-accent")) tip.style.setProperty("--cy-accent", data.color);
+      // Ctrl + wheel zooms the diagram (trackpad pinch sends ctrlKey too).
+      // A plain wheel scrolls the page and shows a short hint. Expanded or
+      // popped out there's no page to scroll, so a plain wheel zooms there.
+      var mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+      var wheelTip = document.createElement("div"), wheelTimer;
+      wheelTip.className = "cy-wheel-tip";
+      wheelTip.textContent = (mac ? "\u2318" : "Ctrl") + " + scroll to zoom";
+      fig.appendChild(wheelTip);
+      box.addEventListener("wheel", function (e) {
+        var own = fig.classList.contains("cy-full") || fig.classList.contains("cy-popped");
+        if (!own && !e.ctrlKey && !e.metaKey) {
+          wheelTip.classList.add("on");
+          clearTimeout(wheelTimer);
+          wheelTimer = setTimeout(function () { wheelTip.classList.remove("on"); }, 1200);
+          return;
+        }
+        wheelTip.classList.remove("on");
+        e.preventDefault();
+        var dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+        var r = box.getBoundingClientRect();
+        cy.zoom({ level: cy.zoom() * Math.pow(1.0018, -dy),
+                  renderedPosition: { x: e.clientX - r.left, y: e.clientY - r.top } });
+      }, { passive: false });
+
+      // Right-drag pans, so a left click or drag never moves the view by accident.
+      // Touch keeps Cytoscape's one-finger pan.
+      var panFrom = null;
+      box.addEventListener("pointerdown", function (e) {
+        cy.userPanningEnabled(e.pointerType === "touch");
+        if (e.pointerType !== "mouse" || e.button !== 2) return;
+        panFrom = { x: e.clientX, y: e.clientY };
+        box.setPointerCapture(e.pointerId);
+        box.style.cursor = "grabbing";
+      }, true);
+      box.addEventListener("pointermove", function (e) {
+        if (!panFrom || !box.hasPointerCapture(e.pointerId)) return;
+        cy.panBy({ x: e.clientX - panFrom.x, y: e.clientY - panFrom.y });
+        panFrom = { x: e.clientX, y: e.clientY };
+      });
+      box.addEventListener("lostpointercapture", function () {
+        if (!panFrom) return;
+        panFrom = null;
+        box.style.cursor = "default";
+      });
+      box.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+      // Locked by default so a stray drag doesn't move anything.
+      var lockBtn = fig.querySelector(".cy-lock");
+      var copyBtn = fig.querySelector(".cy-copy");
+      var pinBtn = fig.querySelector(".cy-pin");
+      var popBtn = fig.querySelector(".cy-pop");
+
+      // Copy the block's JSON with the current positions, to paste back into
+      // the markdown after moving things around.
+      function copyLayout() {
+        var out = JSON.parse(JSON.stringify(m));
+        out.nodes.forEach(function (n) {
+          var el = cy.getElementById(n.id);
+          if (el.isParent()) { delete n.x; delete n.y; return; }
+          n.x = Math.round(el.position("x")); n.y = Math.round(el.position("y"));
+        });
+        var text = JSON.stringify(out, null, 2);
+        var doc = fig.ownerDocument, win = doc.defaultView;  // can be the pop-out window
+        function done() {
+          copyBtn.textContent = "Copied";
+          setTimeout(function () { copyBtn.textContent = "Copy layout"; }, 1500);
+        }
+        if (win.navigator.clipboard && win.isSecureContext) {
+          win.navigator.clipboard.writeText(text).then(done);
+        } else {
+          var ta = doc.createElement("textarea");
+          ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+          doc.body.appendChild(ta); ta.select();
+          try { doc.execCommand("copy"); done(); } catch (e) {}
+          doc.body.removeChild(ta);
+        }
+      }
+      function setLocked(on) {
+        cy.autoungrabify(on);
+        lockBtn.textContent = on ? "Unlock" : "Lock";
+        lockBtn.classList.toggle("open", !on);
+        lockBtn.title = on ? "Unlock to move items" : "Lock items in place";
+        copyBtn.hidden = on;
+      }
+      setLocked(true);
+
+      // Expanded, pinned or popped out: the size comes from the window, not the diagram.
+      function docked() {
+        return fig.classList.contains("cy-full") || fig.classList.contains("cy-pinned") ||
+               fig.classList.contains("cy-popped");
+      }
+      // Box height follows the diagram's shape, capped at 90% of the window.
+      function autoHeight() {
+        if (typeof m.height === "number" || docked()) return;
+        var bb = cy.elements().boundingBox({ includeLabels: true });
+        var h = Math.min((box.clientWidth - 80) * bb.h / bb.w, bb.h) + 80;
+        box.style.height = Math.round(Math.max(320, Math.min(h, window.innerHeight * 0.9))) + "px";
+        cy.resize(); fitView();
+      }
+      // The box is the same width as the page column. Expand is for a closer look.
+      function refit() {
+        if (docked()) { cy.resize(); fitView(); return; }
+        cy.resize(); fitView();
+        autoHeight();
+      }
+      refit();
+      window.addEventListener("resize", refit);
+
+      // Expand fills the window, Esc closes it.
+      var expandBtn = fig.querySelector(".cy-expand");
+      function setExpanded(on) {
+        fig.classList.toggle("cy-full", on);
+        expandBtn.textContent = on ? "Close" : "Expand";
+        document.documentElement.style.overflow = on ? "hidden" : "";
+        setTimeout(function () { refit(); cy.resize(); fitView(); }, 0);
+      }
+      if (window.ResizeObserver) new ResizeObserver(function () { cy.resize(); }).observe(box);
+
+      // Pin keeps the diagram on screen (right side, or top on narrow screens)
+      // while the page scrolls. One at a time; remembered for this page.
+      var pinPh = null;
+      function setPinned(on, anchor) {
+        if (on === (pinnedD === d) || (on && popWin)) return;
+        if (on && pinnedD) pinnedD.pin(false);
+        keepPlace(function () {
+          if (on) {
+            pinPh = placeholder("Pinned" + (m.title ? ": " + m.title : " diagram"), "Unpin",
+                                function () { setPinned(false); });
+            fig.parentNode.insertBefore(pinPh, fig);
+          } else if (pinPh) { pinPh.remove(); pinPh = null; }
+          fig.classList.toggle("cy-pinned", on);
+          document.body.classList.toggle("cy-pin-open", on);
+        }, anchor);
+        pinnedD = on ? d : null;
+        pinBtn.textContent = on ? "Unpin" : "Pin";
+        pinBtn.classList.toggle("on", on);
+        store.set(PIN_KEY, on ? String(index) : null);
+        setTimeout(function () { if (on) { cy.resize(); fitView(); } else refit(); }, 0);
+      }
+
+      // Drag the pinned pane's edge to resize it.
+      var grip = document.createElement("div");
+      grip.className = "cy-grip";
+      grip.title = "Drag to resize";
+      fig.appendChild(grip);
+      grip.addEventListener("pointerdown", function (e) {
+        e.preventDefault();
+        grip.setPointerCapture(e.pointerId);
+        grip.classList.add("drag");
+      });
+      grip.addEventListener("pointermove", function (e) {
+        if (!grip.hasPointerCapture(e.pointerId)) return;
+        var root = document.documentElement.style;
+        if (wide()) {
+          var w = Math.round(Math.max(320, Math.min(window.innerWidth - e.clientX, window.innerWidth * 0.75)));
+          root.setProperty("--cy-pin-w", w + "px"); store.set("md2html.pinW", String(w));
+        } else {
+          var h = Math.round(Math.max(160, Math.min(e.clientY, window.innerHeight * 0.75)));
+          root.setProperty("--cy-pin-h", h + "px"); store.set("md2html.pinH", String(h));
+        }
+      });
+      grip.addEventListener("lostpointercapture", function () { grip.classList.remove("drag"); });
+
+      // Pop out moves the diagram into its own window: an always-on-top
+      // Picture-in-Picture window where the browser has one (Chrome, Edge),
+      // a normal pop-up otherwise. Closing that window brings it back.
+      var popWin = null, popPh = null;
+      function popOut() {
+        if (popWin) { dock(); return; }
+        if (pinnedD === d) setPinned(false);
+        if (fig.classList.contains("cy-full")) setExpanded(false);
+        if (window.documentPictureInPicture) {
+          documentPictureInPicture.requestWindow({ width: 960, height: 640 })
+            .then(attach, function () { attach(openWin()); });
+        } else attach(openWin());
+      }
+      function openWin() {
+        return window.open("", "", "popup,width=1000,height=700");
+      }
+      function attach(w) {
+        if (!w) return;  // pop-up blocked
+        popWin = w;
+        var doc = w.document;
+        doc.title = m.title || document.title;
+        document.querySelectorAll('style, link[rel="stylesheet"]').forEach(function (s) {
+          doc.head.appendChild(s.cloneNode(true));
+        });
+        doc.body.style.cssText = "margin:0;padding:0;max-width:none;background:#000;overflow:hidden";
+        keepPlace(function () {
+          popPh = placeholder((m.title ? m.title + ": " : "") + "open in its own window", "Bring back", dock);
+          fig.parentNode.insertBefore(popPh, fig);
+          doc.body.appendChild(fig);
+        });
+        fig.classList.add("cy-popped");
+        popBtn.textContent = "Dock";
+        popBtn.title = "Put the diagram back in the page";
+        cy.mount(box);  // rebinds Cytoscape's events to the new window
+        w.addEventListener("resize", function () { cy.resize(); });
+        w.addEventListener("pagehide", dock);
+        setTimeout(function () { cy.resize(); fitView(); }, 50);
+      }
+      function dock() {
+        if (!popWin) return;
+        var w = popWin;
+        popWin = null;
+        keepPlace(function () {
+          popPh.parentNode.insertBefore(fig, popPh);
+          popPh.remove(); popPh = null;
+        });
+        fig.classList.remove("cy-popped");
+        popBtn.textContent = "Pop out";
+        popBtn.title = "Open the diagram in its own window";
+        cy.mount(box);
+        setTimeout(refit, 0);
+        try { if (!w.closed) w.close(); } catch (e) {}
+      }
+      window.addEventListener("pagehide", function () { if (popWin) popWin.close(); });
+
+      // Text references: the diagram resolves [x]{node=id} and auto-linked IPs.
+      // An IP belongs to a device when it is in its "sub", on its end of a link,
+      // or written as a CIDR (10.10.10.1/24). A plain mention in details, like
+      // "Gateway: 10.10.10.1", only counts if nothing stronger claims it.
+      // Network addresses (10.0.12.0/30) are not devices and are skipped.
+      var own = {}, weak = {};
+      function isNetwork(ip, len) {
+        if (!(len < 31)) return false;
+        var n = ip.split(".").reduce(function (a, o) { return a * 256 + Number(o); }, 0);
+        return n % Math.pow(2, 32 - len) === 0;
+      }
+      function addIps(s, id, strong) {
+        String(s).replace(/(?<![\d.])(\d{1,3}(?:\.\d{1,3}){3})(?:\/(\d{1,2}))?(?!\d|\.\d)/g, function (all, ip, len) {
+          if (len !== undefined && isNetwork(ip, Number(len))) return all;
+          var map = strong || len !== undefined ? own : weak;
+          (map[ip] = map[ip] || {})[id] = true;
+          return all;
+        });
+      }
+      (m.nodes || []).forEach(function (n) {
+        addIps(n.sub || "", n.id, true);
+        Object.keys(n.details || {}).forEach(function (k) { addIps(n.details[k], n.id, false); });
+      });
+      (m.edges || []).forEach(function (e) {
+        if (e.src) addIps(e.src, e.from, true);
+        if (e.dst) addIps(e.dst, e.to, true);
+      });
+
+      // Bring the nodes into view inside the canvas if they are outside it.
+      function reveal(n) {
+        var bb = n.renderedBoundingBox(), W = box.clientWidth, H = box.clientHeight;
+        if (bb.x1 < 0 || bb.y1 < 0 || bb.x2 > W || bb.y2 > H) cy.animate({ center: { eles: n } }, { duration: 250 });
+      }
+      function onScreen() {
+        if (popWin || pinnedD === d) return true;
+        var r = fig.getBoundingClientRect();
+        return r.bottom > 120 && r.top < window.innerHeight - 120;
+      }
+
+      fig.querySelector(".cy-tools").addEventListener("click", function (e) {
+        var a = e.target.getAttribute("data-a");
+        if (a === "expand") setExpanded(!fig.classList.contains("cy-full"));
+        if (a === "lock") setLocked(!cy.autoungrabify());
+        if (a === "copy") copyLayout();
+        if (a === "pin") setPinned(pinnedD !== d);
+        if (a === "pop") popOut();
+        if (a === "fit") fitView();
+        if (a === "in") cy.zoom({ level: cy.zoom() * 1.25, renderedPosition: { x: box.clientWidth / 2, y: box.clientHeight / 2 } });
+        if (a === "out") cy.zoom({ level: cy.zoom() * 0.8, renderedPosition: { x: box.clientWidth / 2, y: box.clientHeight / 2 } });
+      });
+
+      var d = {
+        fig: fig, cy: cy, home: home, autolink: m.autolink === true,
+        pin: setPinned, expand: setExpanded, highlight: highlight, clear: clear,
+        active: function () { return !!popWin || pinnedD === d; },
+        // An IP auto-links only when exactly one device in this diagram has it.
+        ipNodes: function (ip) {
+          var k = Object.keys(own[ip] || weak[ip] || {});
+          return k.length === 1 ? k : null;
+        },
+        // Clicking a reference selects the node and opens its details. If the
+        // diagram is off screen it gets pinned, so you keep your place.
+        select: function (ids, from) {
+          var n = nodes(ids);
+          if (n.empty()) return;
+          if (!onScreen()) setPinned(true, from);
+          cy.elements().unselect();
+          n.select();
+          show(n[0]);
+          setTimeout(function () { reveal(n); }, 60);
+        }
+      };
+      diagrams.push(d);
     });
-    tip.innerHTML = html;
-    tip.hidden = false;
-    var rr = ref.getBoundingClientRect();
-    var x = Math.max(8, Math.min(rr.left, window.innerWidth - tip.offsetWidth - 8));
-    var y = rr.bottom + 6;
-    if (y + tip.offsetHeight > window.innerHeight - 4) y = rr.top - tip.offsetHeight - 6;
-    tip.style.left = x + "px";
-    tip.style.top = y + "px";
-  }
-  function leave() {
-    if (hot) hot.d.clear();
-    hot = null;
+
+    window.mdCy.diagrams = diagrams;  // for debugging from the console
+    if (!diagrams.length) return;
+
+    // Esc closes Expand first, then unpins.
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape") return;
+      var full = diagrams.filter(function (d) { return d.fig.classList.contains("cy-full"); })[0];
+      if (full) full.expand(false);
+      else if (pinnedD) pinnedD.pin(false);
+    });
+
+    // Which diagram and node ids a reference points at. A pinned or popped-out
+    // diagram wins, then the nearest one above the reference, then any.
+    function idsFor(ref, d) {
+      var node = ref.getAttribute("data-node");
+      if (node) {
+        var ids = node.trim().split(/\s+/);
+        return ids.every(function (id) { return d.cy.getElementById(id).nonempty(); }) ? ids : null;
+      }
+      var ip = ref.getAttribute("data-ip");
+      return ip && d.autolink ? d.ipNodes(ip) : null;
+    }
+    function resolve(ref) {
+      var cands = diagrams.filter(function (d) { return idsFor(ref, d); });
+      if (!cands.length) return null;
+      var pick = cands.filter(function (d) { return d.active(); })[0];
+      if (!pick) cands.forEach(function (d) {
+        if (d.home.compareDocumentPosition(ref) & Node.DOCUMENT_POSITION_FOLLOWING) pick = d;
+      });
+      pick = pick || cands[0];
+      return { d: pick, ids: idsFor(ref, pick) };
+    }
+    // Hovering a device marks the text that mentions it.
+    function markRefs(d, id) {
+      document.querySelectorAll(".cy-ref.cy-ref-hl").forEach(function (x) { x.classList.remove("cy-ref-hl"); });
+      if (!d) return;
+      document.querySelectorAll(".cy-ref").forEach(function (ref) {
+        var r = resolve(ref);
+        if (r && r.d === d && r.ids.indexOf(id) >= 0) ref.classList.add("cy-ref-hl");
+      });
+    }
+
+    // "autolink": true in a diagram turns IPs in the text and code that match
+    // exactly one of its devices into references.
+    if (diagrams.some(function (d) { return d.autolink; })) {
+      var skip = ".cy-figure, .cy-ref, nav#TOC, a, button, script, style, textarea, .doc-footer, .cy-ph";
+      var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), hits = [], t;
+      while ((t = walker.nextNode())) {
+        IP.lastIndex = 0;
+        if (IP.test(t.nodeValue) && t.parentElement && !t.parentElement.closest(skip)) hits.push(t);
+      }
+      hits.forEach(function (t) {
+        var text = t.nodeValue, frag = document.createDocumentFragment(), last = 0, any = false;
+        text.replace(IP, function (ip, at) {
+          if (!diagrams.some(function (d) { return d.autolink && d.ipNodes(ip); })) return ip;
+          frag.appendChild(document.createTextNode(text.slice(last, at)));
+          var s = document.createElement("span");
+          s.className = "cy-ref";
+          s.setAttribute("data-ip", ip);
+          s.textContent = ip;
+          frag.appendChild(s);
+          last = at + ip.length; any = true;
+          return ip;
+        });
+        if (!any) return;
+        frag.appendChild(document.createTextNode(text.slice(last)));
+        t.parentNode.replaceChild(frag, t);
+      });
+    }
+    // Written references can be reached with Tab; Enter opens them.
+    document.querySelectorAll(".cy-ref[data-node]").forEach(function (ref) { ref.tabIndex = 0; });
+
+    // Hover or focus: highlight in the diagram and show a small label.
+    var tip = document.createElement("div");
+    tip.className = "cy-tip";
     tip.hidden = true;
-    tip.style.removeProperty("--cy-accent");
-  }
-  function refOf(e) { return e.target && e.target.closest ? e.target.closest(".cy-ref") : null; }
-  document.addEventListener("mouseover", function (e) { var ref = refOf(e); if (ref) enter(ref); });
-  document.addEventListener("mouseout", function (e) {
-    var ref = refOf(e);
-    if (ref && !ref.contains(e.relatedTarget)) leave();
-  });
-  document.addEventListener("focusin", function (e) { var ref = refOf(e); if (ref) enter(ref); });
-  document.addEventListener("focusout", function (e) { if (refOf(e)) leave(); });
-  window.addEventListener("scroll", function () { if (hot) leave(); }, { passive: true });
-  function activate(ref) {
-    var r = resolve(ref);
-    if (r) r.d.select(r.ids, ref);
-  }
-  document.addEventListener("click", function (e) { var ref = refOf(e); if (ref) activate(ref); });
-  document.addEventListener("keydown", function (e) {
-    var ref = refOf(e);
-    if (ref && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); activate(ref); }
-  });
+    document.body.appendChild(tip);
+    var hot = null;
+    function enter(ref) {
+      if (hot && hot.ref === ref) return;
+      leave();
+      var r = resolve(ref);
+      if (!r) return;
+      hot = { ref: ref, d: r.d };
+      r.d.highlight(r.ids);
+      var html = "";
+      r.ids.forEach(function (id) {
+        var data = r.d.cy.getElementById(id).data();
+        html += (html ? "<br>" : "") + "<b>" + esc(data.name) + "</b>" + (data.sub ? " <span>" + esc(data.sub) + "</span>" : "");
+        if (!tip.style.getPropertyValue("--cy-accent")) tip.style.setProperty("--cy-accent", data.color);
+      });
+      tip.innerHTML = html;
+      tip.hidden = false;
+      var rr = ref.getBoundingClientRect();
+      var x = Math.max(8, Math.min(rr.left, window.innerWidth - tip.offsetWidth - 8));
+      var y = rr.bottom + 6;
+      if (y + tip.offsetHeight > window.innerHeight - 4) y = rr.top - tip.offsetHeight - 6;
+      tip.style.left = x + "px";
+      tip.style.top = y + "px";
+    }
+    function leave() {
+      if (hot) hot.d.clear();
+      hot = null;
+      tip.hidden = true;
+      tip.style.removeProperty("--cy-accent");
+    }
+    function refOf(e) { return e.target && e.target.closest ? e.target.closest(".cy-ref") : null; }
+    document.addEventListener("mouseover", function (e) { var ref = refOf(e); if (ref) enter(ref); });
+    document.addEventListener("mouseout", function (e) {
+      var ref = refOf(e);
+      if (ref && !ref.contains(e.relatedTarget)) leave();
+    });
+    document.addEventListener("focusin", function (e) { var ref = refOf(e); if (ref) enter(ref); });
+    document.addEventListener("focusout", function (e) { if (refOf(e)) leave(); });
+    window.addEventListener("scroll", function () { if (hot) leave(); }, { passive: true });
+    function activate(ref) {
+      var r = resolve(ref);
+      if (r) r.d.select(r.ids, ref);
+    }
+    document.addEventListener("click", function (e) { var ref = refOf(e); if (ref) activate(ref); });
+    document.addEventListener("keydown", function (e) {
+      var ref = refOf(e);
+      if (ref && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); activate(ref); }
+    });
 
-  // Re-pin the diagram that was pinned the last time this page was open.
-  var saved = parseInt(store.get(PIN_KEY), 10);
-  if (diagrams[saved]) diagrams[saved].pin(true);
+    // Re-pin the diagram that was pinned the last time this page was open.
+    var saved = parseInt(store.get(PIN_KEY), 10);
+    if (diagrams[saved]) diagrams[saved].pin(true);
+  }
 })();
 </script>
