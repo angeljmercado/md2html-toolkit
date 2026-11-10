@@ -66,7 +66,7 @@ local function render(el)
     '<button data-a="out" title="Zoom out">&minus;</button>' ..
     '<button data-a="fit" title="Fit to view">&#9633;</button></div>' ..
     '<div class="cy-canvas"></div><div class="cy-panel" hidden></div>' ..
-    '<div class="cy-hint">click a device for details &middot; scroll to zoom &middot; drag the background to pan &middot; Pin to keep it beside the text</div>' ..
+    '<div class="cy-hint">click a device for details &middot; Ctrl + scroll to zoom &middot; right-drag to pan &middot; Pin to keep it beside the text</div>' ..
     '<script type="application/json">' .. json .. '</script></figure>')
 end
 

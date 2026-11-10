@@ -256,7 +256,7 @@
     var cy = cytoscape({
       container: container, headless: !container, elements: els, style: style(),
       layout: placed ? { name: "preset", padding: 40 } : { name: "cose", animate: false, padding: 40, nodeRepulsion: 12000 },
-      userZoomingEnabled: false, boxSelectionEnabled: false, autoungrabify: true, minZoom: 0.3, maxZoom: 3
+      userZoomingEnabled: false, userPanningEnabled: false, boxSelectionEnabled: false, autoungrabify: true, minZoom: 0.3, maxZoom: 3
     });
     placeEndLabels(cy.edges());
     // Keep the labels next to their nodes while you drag things around.
@@ -383,15 +383,38 @@
     cy.on("mouseover", "node, edge", function () { box.style.cursor = "pointer"; });
     cy.on("mouseout", "node, edge", function () { box.style.cursor = "default"; });
 
-    // The mouse wheel zooms the diagram, and the page doesn't scroll while the
-    // pointer is over it. Trackpad pinch works too.
+    // Ctrl + wheel zooms the diagram (trackpad pinch sends ctrlKey too).
+    // A plain wheel scrolls the page as usual.
     box.addEventListener("wheel", function (e) {
+      if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
       var dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
       var r = box.getBoundingClientRect();
       cy.zoom({ level: cy.zoom() * Math.pow(1.0018, -dy),
                 renderedPosition: { x: e.clientX - r.left, y: e.clientY - r.top } });
     }, { passive: false });
+
+    // Right-drag pans, so a left click or drag never moves the view by accident.
+    // Touch keeps Cytoscape's one-finger pan.
+    var panFrom = null;
+    box.addEventListener("pointerdown", function (e) {
+      cy.userPanningEnabled(e.pointerType === "touch");
+      if (e.pointerType !== "mouse" || e.button !== 2) return;
+      panFrom = { x: e.clientX, y: e.clientY };
+      box.setPointerCapture(e.pointerId);
+      box.style.cursor = "grabbing";
+    }, true);
+    box.addEventListener("pointermove", function (e) {
+      if (!panFrom || !box.hasPointerCapture(e.pointerId)) return;
+      cy.panBy({ x: e.clientX - panFrom.x, y: e.clientY - panFrom.y });
+      panFrom = { x: e.clientX, y: e.clientY };
+    });
+    box.addEventListener("lostpointercapture", function () {
+      if (!panFrom) return;
+      panFrom = null;
+      box.style.cursor = "default";
+    });
+    box.addEventListener("contextmenu", function (e) { e.preventDefault(); });
 
     // Locked by default so a stray drag doesn't move anything.
     var lockBtn = fig.querySelector(".cy-lock");
