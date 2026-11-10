@@ -13,6 +13,9 @@ HTML when I want a version that is easy to read and share.
   section you are reading
 - Dark theme (pitch black, magenta accents) and light theme, follows
   the system setting
+- Embedded fonts: Inter for text, JetBrains Mono for code, terminal
+  output and diagram interfaces/IPs (no ligatures, so `->` and `!=` stay as
+  typed). Same look on every machine, offline
 - Copy button on every code block, Laserwave-style magenta syntax
   colors in dark mode
 - Interactive diagrams (Cytoscape.js): click, hover, zoom, pan, pin beside
@@ -28,7 +31,7 @@ Only `pandoc` 3.1.1 or newer, and only on the machine doing the build:
 sudo apt install pandoc   # or: sudo dnf install pandoc
 ```
 
-Cytoscape.js is already in `vendor/`. Viewers just need a browser. Works on
+Cytoscape.js and the fonts are already in `vendor/`. Viewers just need a browser. Works on
 Linux and on Windows (run `build.sh` from Git Bash).
 
 ## Usage
@@ -87,8 +90,10 @@ Put JSON in a ` ```cytoscape ` block and place each device with `x`/`y`:
   and `"autolink": true` (see below).
 - **In the page:** click a device or link for its details (a device also
   lists its links: local interface and IP, then the neighbor and its end),
-  hover to highlight its links, scroll to zoom, drag the background to pan,
-  **Expand** for full window.
+  hover to highlight its links, **Ctrl + scroll** (or pinch) to zoom,
+  **right-drag** to pan (one finger on touch), **□** to fit it back in
+  view, **Expand** for full window. A plain scroll scrolls the page (a
+  short hint says so); Expanded or popped out, a plain scroll zooms.
 - **Pin:** keeps the diagram on screen while you scroll, docked on the right
   (on top below 1100 px wide). Drag its edge to resize. The page remembers
   the pinned diagram and the size. **Esc** unpins.
@@ -133,7 +138,7 @@ first, then the nearest diagram above the text.
 | `copy-code.html` | Copy buttons |
 | `default-lang.lua` | Forces syntax colors on every code block (bash by default) |
 | `cytoscape.lua`, `cytoscape-runtime.html` | Diagrams: validation, `{node=...}` links, rendering, pin/pop out, behavior |
-| `vendor/` | Cytoscape.js 3.34.4 and its `SHA256SUMS` |
+| `vendor/` | Cytoscape.js 3.34.4, fonts (Inter, JetBrains Mono, see `vendor/fonts/README.md`) and `SHA256SUMS` |
 | `tests/smoke.sh` | Quick check: builds a small doc and verifies the output |
 | `html_context.md` | Full reference: how it works, theme colors, gotchas |
 
