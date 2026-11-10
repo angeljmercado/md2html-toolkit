@@ -34,6 +34,7 @@ check "code block highlighted" "grep -q 'class=\"sourceCode' '$TMP/doc.html'"
 check "table present" "grep -q '<table' '$TMP/doc.html'"
 check "node reference rendered" "grep -q 'class=\"cy-ref\" data-node=\"a b\"' '$TMP/doc.html'"
 check "pin and pop-out buttons" "grep -q 'data-a=\"pin\"' '$TMP/doc.html' && grep -q 'data-a=\"pop\"' '$TMP/doc.html'"
+check "4 fonts embedded" "[ \"\$(grep -o 'font/woff2;base64' '$TMP/doc.html' | wc -l)\" -ge 4 ] && ! grep -q 'vendor/fonts/' '$TMP/doc.html'"
 check "no filter warnings" "! grep -q 'cytoscape.lua:' '$TMP/log'"
 
 cp "$TMP/doc.md" "$TMP/smoke-$$.md"
