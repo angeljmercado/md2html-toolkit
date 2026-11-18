@@ -43,8 +43,9 @@ grep -cE '(href|src)="(https?:|[^#"])' <name>.html
 | Content width (`--page-width`, `75rem`) | `:root` in `doc-style.css` |
 | Sidebar width (`270px`) | `toc-sidebar.html` (nav width + margin calc) |
 | Sidebar auto-open breakpoint (`1100px`) | `toc-sidebar.html` (media query + JS) |
-| Pinned diagram default size (`--cy-pin-w`, `--cy-pin-h`) | `:root` in `cytoscape-runtime.html` |
-| Pinned diagram right/top breakpoint (`1100px`) | `cytoscape-runtime.html` (media queries + `wide()`) |
+| Pinned diagram default size (`--dg-pin-w`, `--dg-pin-h`) | `:root` in `diagram-runtime.html` |
+| Pinned diagram right/top breakpoint (`1100px`) | `diagram-runtime.html` (media queries + `wide()`) |
+| Diagram colors (`--dg-*`, type colors `--dg-t-<type>`) | two `:root` blocks at the top of `diagram-runtime.html` (light, then dark inside `@media`) |
 | Fonts (`--font-sans`, `--font-mono`) | `:root` in `doc-style.css`; the files and `@font-face` rules are at its top, see `vendor/fonts/README.md` |
 | Outline depth | `--toc-depth=N` |
 | Colors | design tokens at the top of `doc-style.css` (two `:root` blocks: light, then dark inside `@media`) — all assets read them via `var(--…)` |
@@ -90,8 +91,16 @@ Note: true CSS `darkmagenta` (`#8b008b`) is too dark to read on black,
 so dark mode uses Laserwave's magenta for text accents; `darkmagenta`
 is the light-mode accent instead.
 
-Fonts: Inter for text, JetBrains Mono for code, `kbd`, diagram end labels
-and the details panel's values. Both are embedded from `vendor/fonts/`
+Diagrams have their own tokens (`--dg-*`) at the top of
+`diagram-runtime.html`, in the same light/dark pattern: canvas, card,
+line, tag and panel colors, plus one color per device type
+(`--dg-t-internet`, `--dg-t-switch`, ...). Dark mode uses a slate canvas
+(`#0a0b10`) with a faint dot grid; light mode a near-white one. Card
+fills, VLAN tabs and device IPs mix the type color in with CSS
+`color-mix()`, so a type color is set in one place.
+
+Fonts: Inter for text, JetBrains Mono for code, `kbd`, diagram IPs and
+interface tags, and the details panel's values. Both are embedded from `vendor/fonts/`
 (Latin subsets, OFL-1.1, about 270 KB, roughly 370 KB per page once
 base64-encoded) through `@font-face` in `doc-style.css`, and exposed as
 `--font-sans` / `--font-mono`. Code has ligatures off; tables use
@@ -116,26 +125,27 @@ lists are styled.
 - Generated HTML goes stale silently — regenerate after editing the
   Markdown. Print → Save as PDF for a PDF; sidebar/buttons auto-hide.
 - Pinned diagrams use `position: fixed` plus a margin on `body`. The rules
-  in `cytoscape-runtime.html` use two classes (`body.cy-pin-open.toc-open`)
+  in `diagram-runtime.html` use two classes (`body.dg-pin-open.toc-open`)
   so they beat the sidebar's `body.toc-open` margin, which loads later.
-- Pop out moves the figure into the other window and calls `cy.mount(box)`
-  again, so Cytoscape rebinds its mouse events to that window. Without it,
-  dragging and clicking in the pop-out do nothing.
+- Diagrams are SVG built by `diagram-runtime.html` in the browser; the
+  build only validates the JSON and writes the figure markup
+  (`diagram.lua`). No diagram library is vendored.
+- Card and tag sizes are measured with the real fonts (canvas
+  `measureText`), so the runtime waits for the embedded fonts
+  (`document.fonts.load`, 1.5 s cap) before drawing. Change a font size in
+  the `.dg` CSS and in the `FONT` table in the script together.
+- End tags are placed from the link's angle and the tag's size
+  (`outside()` in the runtime), so they sit against their own device.
+- `color-mix()` needs a 2023+ browser (Chrome 111, Firefox 113, Safari
+  16.2). An `@supports` block gives older ones plain, untinted cards.
 - IP auto-linking runs in the browser after load, because pandoc's syntax
   highlighting already split code into spans at build time. IPs stay in
   one text node, so the runtime can wrap them.
 - The outline's scroll-spy line follows the headings' `scroll-margin-top`,
   which grows when a diagram is pinned on top.
-- Edge end labels are placed from the link's angle and the label's size
-  (`endOffset()` in `cytoscape-runtime.html`), so they sit against their own
-  node. The size math assumes the edge style's 12px monospace, line-height
-  1.25 and 3px padding, so change both together.
-- Diagrams draw text on a canvas and cache it, so the runtime waits for
-  the embedded fonts (`document.fonts.load`, 1.5 s cap) before building
-  them. Otherwise labels can stay in the fallback font.
 - Zoom is Ctrl/Cmd + wheel (pinch sends `ctrlKey`) so a plain wheel keeps
   scrolling the page; Expanded or popped out, a plain wheel zooms. Pan is
-  a right-drag handled by the runtime (`userPanningEnabled` is off, except
-  for touch input).
-- Group (VLAN) titles sit under the box: links usually enter from the top
-  and their end labels covered a title there.
+  a right-drag (one finger on touch, two fingers pinch). A touch only
+  captures the pointer once it moves, so a tap still clicks a device.
+- Group (VLAN) titles sit in a tab on the bottom edge: links usually enter
+  from the top and their end tags covered a title there.

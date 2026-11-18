@@ -18,8 +18,10 @@ HTML when I want a version that is easy to read and share.
   typed). Same look on every machine, offline
 - Copy button on every code block, Laserwave-style magenta syntax
   colors in dark mode
-- Interactive diagrams (Cytoscape.js): click, hover, zoom, pan, pin beside
-  the text or pop out to another window, and link the text to devices
+- Interactive network diagrams drawn as SVG (no library): click, hover,
+  zoom, pan, pin beside the text or pop out to another window, and link the
+  text to devices. Light and dark follow the page, text in them can be
+  selected and copied, and they print sharp
 - "Generated <date>" footer so you can tell when a build is stale
 - Print-friendly — use the browser's Print > Save as PDF for a PDF
 
@@ -31,7 +33,7 @@ Only `pandoc` 3.1.1 or newer, and only on the machine doing the build:
 sudo apt install pandoc   # or: sudo dnf install pandoc
 ```
 
-Cytoscape.js and the fonts are already in `vendor/`. Viewers just need a browser. Works on
+The fonts are already in `vendor/`. Viewers just need a browser. Works on
 Linux and on Windows (run `build.sh` from Git Bash).
 
 ## Usage
@@ -58,10 +60,10 @@ grep -cE '(href|src)="(https?:|[^#"])' mydoc.html
 
 ## Diagrams
 
-Put JSON in a ` ```cytoscape ` block and place each device with `x`/`y`:
+Put JSON in a ` ```diagram ` block and place each device with `x`/`y`:
 
 ````
-```cytoscape
+```diagram
 {
   "title": "Example",
   "nodes": [
@@ -78,19 +80,24 @@ Put JSON in a ` ```cytoscape ` block and place each device with `x`/`y`:
 ```
 ````
 
-- **Node:** `id`, `label`, `x`/`y`, plus optional `sub` (second line),
-  `type` (`internet`, `firewall`, `switch`, `server`, `storage`, `client`,
-  `ap`), `parent` (put it inside a group node, like a VLAN) and `details`.
+- **Node:** `id`, `label`, `x`/`y`, plus optional `sub` (shown under the
+  name, in monospace), `type` (`internet`, `firewall`, `switch`, `server`,
+  `storage`, `client`, `ap`: sets the card's color and its small type tag),
+  `parent` (put it inside a group node, like a VLAN) and `details`. A group
+  node needs no `x`/`y`: its box fits its members, with its `label` in a tab
+  on the bottom edge.
 - **Edge:** `from`, `to`, plus optional `label` (middle), `src`/`dst` (the
   interface and IP at each end), `dashed`, `arrow` and `details`. Each end
-  label sits right next to its own device; `"G0/1 10.0.12.1/30"` is shown as
-  two lines, interface over IP. Use a list for several lines, like
-  sub-interfaces: `"src": ["G0/1.10 10.10.10.1/24", "G0/1.20 10.10.20.1/24"]`.
+  tag sits right next to its own device and is outlined in that device's
+  color; `"G0/1 10.0.12.1/30"` is shown as two lines, interface (bold) over
+  IP. Use a list for several lines, like sub-interfaces:
+  `"src": ["G0/1.10 10.10.10.1/24", "G0/1.20 10.10.20.1/24"]`. Several links
+  between the same two devices curve apart.
 - **Block:** optional `title`, `height` if you don't want the automatic one,
   and `"autolink": true` (see below).
-- **In the page:** click a device or link for its details (a device also
-  lists its links: local interface and IP, then the neighbor and its end),
-  hover to highlight its links, **Ctrl + scroll** (or pinch) to zoom,
+- **In the page:** click a device, link or group box for its details (a
+  device also lists its links: local interface and IP, then the neighbor
+  and its end), hover a device to light its links in its color, **Ctrl + scroll** (or pinch) to zoom,
   **right-drag** to pan (one finger on touch), **□** to fit it back in
   view, **Expand** for full window. A plain scroll scrolls the page (a
   short hint says so); Expanded or popped out, a plain scroll zooms.
@@ -102,8 +109,14 @@ Put JSON in a ` ```cytoscape ` block and place each device with `x`/`y`:
   browsers a normal pop-up. **Dock** or closing the window brings it back.
 - **Fixed layout:** devices stay where `x`/`y` put them; they can't be
   dragged. Change the numbers in the Markdown and rebuild to move them.
-- Bad JSON, an unknown node in an edge or a `{node=...}` reference, a duplicate id or an unknown parent
-  fails the build with a message.
+- **Colors:** every diagram color is a `--dg-*` CSS variable at the top of
+  `diagram-runtime.html` (light values first, dark ones in the
+  `prefers-color-scheme: dark` block). The type colors are `--dg-t-<type>`.
+- **Older docs:** ` ```cytoscape ` blocks (the old name) still build the
+  same way.
+- Bad JSON, an unknown node in an edge or a `{node=...}` reference, a
+  duplicate id or an unknown parent fails the build with a message. A device
+  without `x`/`y` is put in a row under the others.
 
 ### Linking the text to a diagram
 
@@ -136,8 +149,9 @@ first, then the nearest diagram above the text.
 | `toc-sidebar.html`, `page-extras.html` | Outline sidebar and scroll highlighting |
 | `copy-code.html` | Copy buttons |
 | `default-lang.lua` | Forces syntax colors on every code block (bash by default) |
-| `cytoscape.lua`, `cytoscape-runtime.html` | Diagrams: validation, `{node=...}` links, rendering, pin/pop out, behavior |
-| `vendor/` | Cytoscape.js 3.34.4, fonts (Inter, JetBrains Mono, see `vendor/fonts/README.md`) and `SHA256SUMS` |
+| `diagram.lua` | Diagrams at build time: validation, figure markup, `{node=...}` links |
+| `diagram-runtime.html` | Diagrams in the page: SVG drawing, colors, zoom/pan, details, pin/pop out |
+| `vendor/` | Fonts (Inter, JetBrains Mono, see `vendor/fonts/README.md`) and `SHA256SUMS` |
 | `tests/smoke.sh` | Quick check: builds a small doc and verifies the output |
 | `html_context.md` | Full reference: how it works, theme colors, gotchas |
 
