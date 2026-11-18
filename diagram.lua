@@ -1,7 +1,8 @@
--- Turns ```cytoscape blocks (JSON) into interactive diagrams.
--- The library and runtime get inlined once per page, and only if the doc has a block.
--- Needs CY_DIR (build.sh sets it) to find vendor/cytoscape and cytoscape-runtime.html.
-local dir = os.getenv("CY_DIR")
+-- Turns ```diagram blocks (JSON) into interactive SVG diagrams.
+-- ```cytoscape still works as an older name for the same block.
+-- The runtime gets inlined once per page, and only if the doc has a block.
+-- Needs MD2HTML_DIR (build.sh sets it) to find diagram-runtime.html.
+local dir = os.getenv("MD2HTML_DIR")
 local used = false
 local known = {}  -- node ids from every diagram, to check [text]{node=id} references
 
@@ -15,7 +16,7 @@ end
 
 -- Fail the build with a clear message instead of drawing a broken diagram.
 local function validate(m)
-  local function fail(msg) error("cytoscape block: " .. msg, 0) end
+  local function fail(msg) error("diagram block: " .. msg, 0) end
   if m.autolink ~= nil and type(m.autolink) ~= "boolean" then fail('"autolink" must be true or false') end
   if type(m.nodes) ~= "table" or #m.nodes == 0 then fail('"nodes" must be a non-empty list') end
   local ids = {}
@@ -48,10 +49,10 @@ local function validate(m)
 end
 
 local function render(el)
-  if not el.classes:includes("cytoscape") then return nil end
+  if not (el.classes:includes("diagram") or el.classes:includes("cytoscape")) then return nil end
   local ok, model = pcall(pandoc.json.decode, el.text, false)
   if not ok or type(model) ~= "table" then
-    error("cytoscape block: not valid JSON (" .. tostring(model):sub(1, 120) .. ")", 0)
+    error("diagram block: not valid JSON (" .. tostring(model):sub(1, 120) .. ")", 0)
   end
   validate(model)
   for _, n in ipairs(model.nodes) do known[n.id] = true end
@@ -60,13 +61,13 @@ local function render(el)
   local title = type(model.title) == "string" and model.title or ""
   title = title:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")
   return pandoc.RawBlock("html",
-    '<figure class="cy-figure">' ..
-    (title ~= "" and ('<div class="cy-title">' .. title .. '</div>') or "") ..
-    '<div class="cy-tools"><button class="cy-pin" data-a="pin" title="Keep the diagram on screen while you scroll">Pin</button><button class="cy-pop" data-a="pop" title="Open the diagram in its own window">Pop out</button><button class="cy-expand" data-a="expand">Expand</button><button data-a="in" title="Zoom in">+</button>' ..
+    '<figure class="dg-figure">' ..
+    (title ~= "" and ('<div class="dg-title">' .. title .. '</div>') or "") ..
+    '<div class="dg-tools"><button class="dg-pin" data-a="pin" title="Keep the diagram on screen while you scroll">Pin</button><button class="dg-pop" data-a="pop" title="Open the diagram in its own window">Pop out</button><button class="dg-expand" data-a="expand">Expand</button><button data-a="in" title="Zoom in">+</button>' ..
     '<button data-a="out" title="Zoom out">&minus;</button>' ..
     '<button data-a="fit" title="Fit to view">&#9633;</button></div>' ..
-    '<div class="cy-canvas"></div><div class="cy-panel" hidden></div>' ..
-    '<div class="cy-hint">click a device for details &middot; Ctrl + scroll to zoom &middot; right-drag to pan &middot; Pin to keep it beside the text</div>' ..
+    '<div class="dg-canvas"></div><div class="dg-panel" hidden></div>' ..
+    '<div class="dg-hint">click a device for details &middot; Ctrl + scroll to zoom &middot; right-drag to pan &middot; Pin to keep it beside the text</div>' ..
     '<script type="application/json">' .. json .. '</script></figure>')
 end
 
@@ -85,24 +86,21 @@ local function ref(el)
   end
   el.attributes.node = nil
   el.attributes["data-node"] = v
-  el.classes:insert("cy-ref")
+  el.classes:insert("dg-ref")
   return el
 end
 
 local function finish(doc)
   if not used then return nil end
   if not dir or dir == "" then
-    io.stderr:write("cytoscape.lua: CY_DIR not set, diagrams will not render\n")
+    io.stderr:write("diagram.lua: MD2HTML_DIR not set, diagrams will not render\n")
     return nil
   end
-  local lib = slurp(dir .. "/vendor/cytoscape/cytoscape.min.js")
-  local rt = slurp(dir .. "/cytoscape-runtime.html")
-  if not lib or not rt then
-    io.stderr:write("cytoscape.lua: vendored library or runtime missing\n")
+  local rt = slurp(dir .. "/diagram-runtime.html")
+  if not rt then
+    io.stderr:write("diagram.lua: diagram-runtime.html missing\n")
     return nil
   end
-  local i, j = rt:find("/*CYTOSCAPE_LIB*/", 1, true)
-  rt = rt:sub(1, i - 1) .. lib .. rt:sub(j + 1)
   doc.blocks:insert(pandoc.RawBlock("html", rt))
   return doc
 end

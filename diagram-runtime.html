@@ -1,0 +1,986 @@
+<style>
+/* Diagram runtime: draws ```diagram blocks (JSON, made into markup by
+   diagram.lua) as SVG, so every color is CSS. Diagram colors are the --dg-*
+   tokens below: light first, dark in the media block, like doc-style.css. */
+:root {
+  --dg-bg: #f7f8fb;  --dg-grid: rgba(0,0,0,.10);
+  --dg-card: #ffffff; --dg-fg: #1c2128; --dg-muted: #5b6472;
+  --dg-line: #9aa3b2; --dg-chip: #ffffff; --dg-chip-line: #d5dae2;
+  --dg-mid: #eef0f5;  --dg-mid-fg: #4b5363;
+  --dg-tint: 7%;      --dg-shadow: rgba(28,33,40,.12);
+  --dg-sub-c: 0%;     --dg-sub-base: #5b6472;   /* device IP: plain gray in light */
+  --dg-tab-c: 100%;                              /* VLAN title: full type color */
+  --dg-ui: #ffffff;   --dg-ui-fg: #1c2128; --dg-ui-line: #d5dae2; --dg-ui-soft: #5b6472;
+  --dg-panel: rgba(255,255,255,.97); --dg-panel-rule: #eceff3;
+  --dg-t-internet: #0a7bc2; --dg-t-firewall: #b7791f; --dg-t-switch: #0f8a7e;
+  --dg-t-server: #c2367f;   --dg-t-storage: #6b4fd8;  --dg-t-client: #2f8a3e;
+  --dg-t-ap: #2e6fd8;       --dg-t-default: #8b008b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --dg-bg: #0a0b10;  --dg-grid: rgba(255,255,255,.07);
+    --dg-card: #12141b; --dg-fg: #f2f4f8; --dg-muted: #9aa3b5;
+    --dg-line: #4a5163; --dg-chip: #151823; --dg-chip-line: #2b3040;
+    --dg-mid: #222634;  --dg-mid-fg: #c3c8d4;
+    --dg-tint: 12%;     --dg-shadow: rgba(0,0,0,.55);
+    --dg-sub-c: 55%;    --dg-sub-base: #ffffff;   /* device IP: light tint of the type color */
+    --dg-tab-c: 75%;
+    --dg-ui: #15151c;   --dg-ui-fg: #ececf2; --dg-ui-line: #3a3a46; --dg-ui-soft: #9a9aa8;
+    --dg-panel: rgba(13,13,18,.95); --dg-panel-rule: #1c1c24;
+    --dg-t-internet: #7cc8ff; --dg-t-firewall: #f6c45a; --dg-t-switch: #3fd0c0;
+    --dg-t-server: #f27ab8;   --dg-t-storage: #b39cff;  --dg-t-client: #7ddc8a;
+    --dg-t-ap: #6aa8ff;       --dg-t-default: #eb64b9;
+  }
+}
+.dg-figure {
+  position: relative; margin: 1.5em 0; overflow: hidden; text-align: left;
+  background: var(--dg-bg); border: 1px solid var(--border); border-radius: 10px;
+}
+.dg-canvas { width: 100%; position: relative; }
+.dg-canvas svg { display: block; width: 100%; height: 100%; touch-action: none; user-select: text; }
+.dg-title {
+  position: absolute; top: .6rem; left: .9rem; z-index: 2;
+  font: 600 .75rem/1 var(--font-sans, system-ui, sans-serif); letter-spacing: .06em;
+  text-transform: uppercase; color: var(--dg-ui-soft); pointer-events: none;
+}
+.dg-hint {
+  position: absolute; left: .9rem; bottom: .6rem; z-index: 2;
+  font: .7rem/1 var(--font-sans, system-ui, sans-serif); color: var(--dg-ui-soft); pointer-events: none;
+}
+.dg-wheel-tip {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3;
+  padding: .45rem .9rem; border-radius: 8px; background: var(--dg-panel); color: var(--dg-ui-fg);
+  border: 1px solid var(--dg-ui-line); font: 600 .85rem/1.2 var(--font-sans, system-ui, sans-serif);
+  pointer-events: none; opacity: 0; transition: opacity .2s;
+}
+.dg-wheel-tip.on { opacity: 1; }
+.dg-tools { position: absolute; top: .5rem; right: .6rem; z-index: 2; display: flex; gap: .3rem; }
+.dg-tools button {
+  width: 1.8rem; height: 1.8rem; border-radius: 6px; cursor: pointer;
+  background: var(--dg-ui); color: var(--dg-ui-fg); border: 1px solid var(--dg-ui-line);
+  font: 600 .9rem/1 var(--font-sans, system-ui, sans-serif);
+}
+.dg-tools button:hover, .dg-tools button.dg-pin.on { color: var(--accent); border-color: var(--accent); }
+.dg-tools button.dg-expand, .dg-tools button.dg-pin, .dg-tools button.dg-pop { width: auto; padding: 0 .65rem; font-size: .72rem; letter-spacing: .02em; }
+.dg-tools button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Drawing */
+.dg { font-family: var(--font-sans, system-ui, sans-serif); }
+.dg .dg-node, .dg .dg-edge, .dg .dg-group, .dg .dg-chip, .dg .dg-mid { transition: opacity .15s; }
+.dg .dg-node, .dg .dg-edge, .dg .dg-group .box, .dg .dg-group .tab { cursor: pointer; }
+.dg .card { fill: color-mix(in srgb, var(--c) var(--dg-tint), var(--dg-card)); stroke: var(--c); stroke-width: 1.5;
+  filter: drop-shadow(0 3px 5px var(--dg-shadow)); transition: stroke-width .15s; }
+.dg .tag  { fill: var(--c); font: 700 9px var(--font-sans, sans-serif); letter-spacing: .1em; }
+.dg .name { fill: var(--dg-fg); font: 600 14px var(--font-sans, sans-serif); }
+.dg .sub  { fill: color-mix(in srgb, var(--c) var(--dg-sub-c), var(--dg-sub-base)); font: 400 11.5px var(--font-mono, monospace); }
+.dg .dg-node.hl .card, .dg .dg-node.sel .card { stroke-width: 2.6; filter: drop-shadow(0 0 7px color-mix(in srgb, var(--c) 55%, transparent)); }
+.dg .dg-node:focus { outline: none; }
+.dg .dg-node:focus-visible .card { stroke-width: 3; }
+.dg .box  { fill: var(--c); fill-opacity: .06; stroke: var(--c); stroke-opacity: .5; stroke-width: 1.2; stroke-dasharray: 5 4; }
+.dg .tab  { fill: color-mix(in srgb, var(--c) 22%, var(--dg-card)); stroke: var(--c); stroke-opacity: .6; }
+.dg .tab-t { fill: color-mix(in srgb, var(--c) var(--dg-tab-c), #fff); font: 600 11.5px var(--font-sans, sans-serif); letter-spacing: .02em; }
+.dg .ln   { stroke: var(--dg-line); stroke-width: 2; stroke-linecap: round; fill: none; transition: stroke .15s, stroke-width .15s; }
+.dg .dashed .ln { stroke-dasharray: 6 5; }
+.dg .hit  { stroke: transparent; stroke-width: 14; fill: none; }
+.dg .arr  { fill: var(--dg-line); }
+.dg .dg-edge.hl .ln { stroke: var(--hc, var(--accent)); stroke-width: 2.6; }
+.dg .dg-edge.hl .arr { fill: var(--hc, var(--accent)); }
+.dg .dg-chip rect { fill: var(--dg-chip); stroke: var(--c); stroke-opacity: .65; }
+.dg .if { fill: var(--dg-fg); font: 600 11px var(--font-mono, monospace); }
+.dg .ip { fill: var(--dg-muted); font: 400 10.5px var(--font-mono, monospace); }
+.dg .dg-mid rect { fill: var(--dg-mid); stroke: var(--dg-chip-line); }
+.dg .dg-mid text { fill: var(--dg-mid-fg); font: 600 11px var(--font-sans, sans-serif); letter-spacing: .02em; }
+.dg .faded { opacity: .16; }
+/* Browsers without color-mix() (before 2023): plain cards instead of tinted ones */
+@supports not (color: color-mix(in srgb, red, blue)) {
+  .dg .card { fill: var(--dg-card); }
+  .dg .sub { fill: var(--dg-muted); }
+  .dg .tab { fill: var(--dg-card); }
+  .dg .tab-t { fill: var(--c); }
+}
+.dg .grid-dot { fill: var(--dg-grid); }
+
+/* Pin: the diagram stays on screen while the text scrolls. Wide screens dock
+   it on the right, narrow ones on top. The grip on its edge resizes it. */
+:root { --dg-pin-w: clamp(360px, 40vw, 900px); --dg-pin-h: 45vh; }
+.dg-figure.dg-pinned {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 90; margin: 0;
+  width: var(--dg-pin-w); height: 100vh; border-width: 0 0 0 1px; border-radius: 0;
+}
+.dg-figure.dg-pinned .dg-canvas { height: 100vh !important; }
+.dg-grip { display: none; position: absolute; z-index: 4; touch-action: none; }
+.dg-pinned .dg-grip { display: block; left: 0; top: 0; bottom: 0; width: 7px; cursor: ew-resize; }
+.dg-grip:hover, .dg-grip.drag { background: color-mix(in srgb, var(--accent) 45%, transparent); }
+@media (min-width: 1100px) {
+  body.dg-pin-open:not(.toc-open) {
+    margin-right: var(--dg-pin-w);
+    margin-left: max(0px, (100% - var(--dg-pin-w) - var(--page-width)) / 2);
+  }
+  body.dg-pin-open.toc-open {
+    margin-right: var(--dg-pin-w);
+    margin-left: calc(290px + max(0px, (100% - 290px - var(--dg-pin-w) - var(--page-width)) / 2));
+  }
+}
+@media (max-width: 1099.98px) {
+  .dg-figure.dg-pinned { left: 0; bottom: auto; width: auto; height: var(--dg-pin-h); border-width: 0 0 1px; }
+  .dg-figure.dg-pinned .dg-canvas { height: var(--dg-pin-h) !important; }
+  .dg-pinned .dg-grip { top: auto; left: 0; right: 0; bottom: 0; width: auto; height: 7px; cursor: ns-resize; }
+  .dg-pinned .dg-title { left: 3.6rem; top: 1.3rem; }
+  body.dg-pin-open { padding-top: calc(var(--dg-pin-h) + 1rem); }
+  body.dg-pin-open h1, body.dg-pin-open h2, body.dg-pin-open h3 { scroll-margin-top: calc(var(--dg-pin-h) + 1rem); }
+}
+.dg-figure.dg-popped { position: fixed; inset: 0; margin: 0; border: 0; border-radius: 0; }
+.dg-figure.dg-popped .dg-canvas { height: 100vh !important; }
+.dg-popped .dg-pin, .dg-popped .dg-expand { display: none; }
+.dg-ph {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  margin: 1.5em 0; padding: .6rem .9rem; border: 1px dashed var(--border); border-radius: 10px;
+  color: var(--fg-muted); font-size: .85rem;
+}
+.dg-ph button {
+  cursor: pointer; padding: .3rem .7rem; border-radius: 6px; font: inherit;
+  background: var(--surface-2); color: var(--fg); border: 1px solid var(--border);
+}
+.dg-ph button:hover { color: var(--accent); border-color: var(--accent); }
+.dg-figure.dg-full { width: auto !important; margin-left: 0 !important; position: fixed; inset: 0; z-index: 1000; margin: 0; border-radius: 0; height: auto; }
+.dg-figure.dg-full .dg-canvas { height: 100vh !important; }
+.dg-tools button[hidden] { display: none; }
+/* Text that points at a diagram node: [10.10.10.11]{node=pve1} or autolink */
+.dg-ref { border-bottom: 1px dashed var(--accent); cursor: pointer; border-radius: 2px; }
+.dg-ref:hover, .dg-ref:focus, .dg-ref.dg-ref-hl { background: var(--hover-bg); color: var(--accent); outline: none; }
+.dg-tip {
+  position: fixed; z-index: 1100; pointer-events: none; max-width: 22rem;
+  padding: .35rem .6rem; border-radius: 6px; font: .78rem/1.35 var(--font-sans, system-ui, sans-serif);
+  background: var(--dg-panel); color: var(--dg-ui-fg); border: 1px solid var(--dg-ui-line); border-left: 3px solid var(--dg-accent, var(--accent));
+  box-shadow: 0 6px 20px var(--dg-shadow);
+}
+.dg-tip[hidden] { display: none; }
+.dg-tip b { font-weight: 600; }
+.dg-tip span { color: var(--dg-muted); font-family: var(--font-mono, ui-monospace, monospace); }
+.dg-panel {
+  position: absolute; top: 3rem; right: .8rem; z-index: 3; width: 22rem; max-width: calc(100% - 1.6rem);
+  max-height: calc(100% - 4rem); overflow: auto; padding: .9rem 1rem;
+  background: var(--dg-panel); color: var(--dg-ui-fg); border: 1px solid var(--dg-ui-line);
+  border-top: 2px solid var(--dg-accent, var(--accent)); border-radius: 8px;
+  box-shadow: 0 8px 28px var(--dg-shadow); font: .85rem/1.4 var(--font-sans, system-ui, sans-serif);
+}
+.dg-panel[hidden] { display: none; }
+.dg-panel h4 { margin: 0; font-size: 1rem; color: var(--dg-fg); }
+.dg-panel .dg-sub { margin: .1rem 0 .6rem; color: var(--dg-muted); font-size: .78rem; font-family: var(--font-mono, monospace); }
+.dg-panel dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; column-gap: 1rem; }
+.dg-panel dt, .dg-panel dd { margin: 0; padding: .35rem 0; border-top: 1px solid var(--dg-panel-rule); }
+.dg-panel dt:first-of-type, .dg-panel dt:first-of-type + dd { border-top: 0; }
+.dg-panel dt { color: var(--dg-muted); font-weight: 400; }
+.dg-panel dd { color: var(--dg-fg); font-family: var(--font-mono, ui-monospace, monospace); font-size: .8rem; overflow-wrap: anywhere; }
+.dg-panel .dg-sec { margin: .8rem 0 .2rem; font-size: .68rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--dg-muted); }
+.dg-panel .dg-links { grid-template-columns: fit-content(55%) 1fr; }
+.dg-panel .dg-links dt { overflow-wrap: anywhere; color: var(--dg-accent, var(--accent)); font-family: var(--font-mono, ui-monospace, monospace); font-size: .8rem; }
+.dg-panel .dg-links dd { font-family: inherit; font-size: .85rem; }
+.dg-panel .dg-far { color: var(--dg-muted); font-family: var(--font-mono, ui-monospace, monospace); font-size: .76rem; }
+@media print {
+  .dg-figure.dg-pinned { position: relative; width: auto; height: auto; }
+  .dg-figure.dg-pinned .dg-canvas { height: 480px !important; }
+  body.dg-pin-open { margin: 0 auto !important; padding-top: 2rem !important; }
+  .dg-ph, .dg-tip, .dg-grip, .dg-tools, .dg-hint, .dg-panel { display: none !important; }
+  .dg-ref { border: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .dg * { transition: none !important; } }
+</style>
+<script>
+(function () {
+  var NS = "http://www.w3.org/2000/svg";
+  var TYPES = { internet: "Internet", firewall: "Firewall", switch: "Switch", server: "Server",
+                storage: "Storage", client: "Client", ap: "Access point" };
+  var FONT = {
+    tag: '700 9px Inter, system-ui, sans-serif', name: '600 14px Inter, system-ui, sans-serif',
+    sub: '400 11.5px "JetBrains Mono", ui-monospace, monospace', tab: '600 11.5px Inter, system-ui, sans-serif',
+    ifc: '600 11px "JetBrains Mono", ui-monospace, monospace', ip: '400 10.5px "JetBrains Mono", ui-monospace, monospace',
+    mid: '600 11px Inter, system-ui, sans-serif'
+  };
+  var measureCtx = null;
+  // Text width with the real fonts, plus letter-spacing (in em) where the CSS adds it.
+  function tw(text, font, spacing) {
+    measureCtx = measureCtx || document.createElement("canvas").getContext("2d");
+    measureCtx.font = font;
+    var size = parseFloat(font.match(/(\d+(?:\.\d+)?)px/)[1]);
+    return measureCtx.measureText(text).width + (spacing || 0) * size * text.length;
+  }
+  function el(tag, attrs, parent, text) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function color(type) { return "var(--dg-t-" + (TYPES[type] ? type : "default") + ")"; }
+
+  // End labels: "G0/1 10.0.12.1/30" is interface over IP. A list gives one
+  // line per entry, for sub-interfaces.
+  function endParts(v) {
+    if (v == null || v === "") return [];
+    var list = Array.isArray(v) ? v.map(String) : [String(v)];
+    return list.map(function (s) {
+      var m = s.match(/^(.*?)\s+(\d{1,3}(?:\.\d{1,3}){3}\S*)\s*$/);
+      if (m) return { ifc: m[1], ip: m[2] };
+      return /^\d{1,3}(?:\.\d{1,3}){3}/.test(s) ? { ifc: "", ip: s } : { ifc: s, ip: "" };
+    });
+  }
+  function endText(v) {
+    return endParts(v).map(function (p) { return (p.ifc + " " + p.ip).trim(); }).join(" / ");
+  }
+
+  // Point just outside box a, on the line toward b, far enough that a label of
+  // size (w, h) centered there doesn't touch the box.
+  function outside(a, b, w, h, gap) {
+    var dx = b.x - a.x, dy = b.y - a.y, len = Math.sqrt(dx * dx + dy * dy) || 1, ux = dx / len, uy = dy / len;
+    var exit = Math.min(ux ? (a.w / 2) / Math.abs(ux) : 1e9, uy ? (a.h / 2) / Math.abs(uy) : 1e9);
+    var d = exit + gap + Math.abs(ux) * w / 2 + Math.abs(uy) * h / 2;
+    return { x: a.x + ux * d, y: a.y + uy * d };
+  }
+  function edgePoint(a, b) {  // where the line from a's center to b's center leaves a
+    return outside(a, b, 0, 0, 0);
+  }
+
+  // Build the SVG for one diagram model. Returns the view: drawing plus
+  // pan/zoom/highlight. Positions are in model units (the JSON's x/y).
+  function make(m, host, uid) {
+    var nodes = {}, order = [], edges = [], kids = {};
+    (m.nodes || []).forEach(function (n) {
+      nodes[n.id] = { id: n.id, name: n.label || n.id, sub: n.sub || "", type: n.type, parent: n.parent,
+                      details: n.details || {}, color: color(n.type), x: n.x, y: n.y, raw: n };
+      order.push(n.id);
+      if (n.parent) (kids[n.parent] = kids[n.parent] || []).push(n.id);
+    });
+    // Unplaced devices (no x/y) go in a row under the rest, so nothing is lost.
+    var unplaced = order.filter(function (id) { return !kids[id] && (typeof nodes[id].x !== "number" || typeof nodes[id].y !== "number"); });
+    if (unplaced.length) {
+      var maxY = 0;
+      order.forEach(function (id) { if (typeof nodes[id].y === "number") maxY = Math.max(maxY, nodes[id].y); });
+      unplaced.forEach(function (id, i) { nodes[id].x = i * 220; nodes[id].y = maxY + 200; });
+    }
+    // Device card sizes from the text they hold.
+    order.forEach(function (id) {
+      var n = nodes[id];
+      if (kids[id]) { n.group = true; return; }
+      n.tag = TYPES[n.type] ? TYPES[n.type].toUpperCase() : "";
+      var w = Math.max(tw(n.name, FONT.name), n.sub ? tw(n.sub, FONT.sub) : 0, n.tag ? tw(n.tag, FONT.tag, 0.1) : 0) + 32;
+      n.w = Math.round(Math.max(w, 96));
+      n.h = (n.tag ? 18 : 0) + 30 + (n.sub ? 16 : 0);
+    });
+    // Group boxes fit their members (groups can nest), with room for the title tab.
+    function groupBox(id) {
+      var g = nodes[id];
+      if (g.box) return g.box;
+      var x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+      kids[id].forEach(function (k) {
+        var c = nodes[k], b = c.group ? groupBox(k) : { x1: c.x - c.w / 2, y1: c.y - c.h / 2, x2: c.x + c.w / 2, y2: c.y + c.h / 2 };
+        x1 = Math.min(x1, b.x1); y1 = Math.min(y1, b.y1); x2 = Math.max(x2, b.x2); y2 = Math.max(y2, b.y2 + (c.group ? 14 : 0));
+      });
+      g.tabW = tw(g.name, FONT.tab, 0.02) + 24;
+      var pad = 20, cx = (x1 + x2) / 2, half = Math.max((x2 - x1) / 2 + pad, g.tabW / 2 + 14);
+      g.box = { x1: cx - half, x2: cx + half, y1: y1 - 18, y2: y2 + 20 };
+      g.x = cx; g.y = (g.box.y1 + g.box.y2) / 2; g.w = g.box.x2 - g.box.x1; g.h = g.box.y2 - g.box.y1;
+      return g.box;
+    }
+    order.forEach(function (id) { if (nodes[id].group) groupBox(id); });
+    (m.edges || []).forEach(function (e, i) {
+      edges.push({ i: i, id: e.id || ("e" + i), from: e.from, to: e.to, label: e.label || "",
+                   src: e.src, dst: e.dst, details: e.details || {}, dashed: !!e.dashed, arrow: !!e.arrow,
+                   name: e.label || (nodes[e.from].name + " ↔ " + nodes[e.to].name) });
+    });
+
+    var svg = el("svg", { class: "dg", role: "img", "aria-label": m.title || "Network diagram" }, host);
+    var defs = el("defs", {}, svg);
+    var pat = el("pattern", { id: uid + "-grid", width: 22, height: 22, patternUnits: "userSpaceOnUse" }, defs);
+    el("circle", { cx: 1, cy: 1, r: 1, class: "grid-dot" }, pat);
+    var gridRect = el("rect", { x: 0, y: 0, width: "100%", height: "100%", fill: "url(#" + uid + "-grid)" }, svg);
+    var root = el("g", {}, svg);
+    var gGroups = el("g", {}, root), gEdges = el("g", {}, root), gNodes = el("g", {}, root), gLabels = el("g", {}, root);
+    var bounds = { x1: Infinity, y1: Infinity, x2: -Infinity, y2: -Infinity };
+    function grow(x1, y1, x2, y2) {
+      bounds.x1 = Math.min(bounds.x1, x1); bounds.y1 = Math.min(bounds.y1, y1);
+      bounds.x2 = Math.max(bounds.x2, x2); bounds.y2 = Math.max(bounds.y2, y2);
+    }
+
+    // Groups, outermost first so inner boxes draw on top.
+    function depth(id) { var d = 0, p = nodes[id].parent; while (p) { d++; p = nodes[p].parent; } return d; }
+    order.filter(function (id) { return nodes[id].group; })
+      .sort(function (a, b) { return depth(a) - depth(b); })
+      .forEach(function (id) {
+        var g = nodes[id], b = g.box;
+        g.el = el("g", { class: "dg-group", style: "--c:" + g.color, "data-id": id }, gGroups);
+        el("rect", { class: "box", x: b.x1, y: b.y1, width: b.x2 - b.x1, height: b.y2 - b.y1, rx: 14 }, g.el);
+        el("rect", { class: "tab", x: g.x - g.tabW / 2, y: b.y2 - 11, width: g.tabW, height: 22, rx: 11 }, g.el);
+        el("text", { class: "tab-t", x: g.x, y: b.y2, "text-anchor": "middle", "dominant-baseline": "central" }, g.el, g.name);
+        grow(b.x1, b.y1, b.x2, b.y2 + 11);
+      });
+
+    // Links. Several links between the same two devices bow apart as curves.
+    var pairs = {};
+    edges.forEach(function (e) { var k = [e.from, e.to].sort().join("\u0000"); (pairs[k] = pairs[k] || []).push(e); });
+    Object.keys(pairs).forEach(function (k) {
+      var list = pairs[k];
+      list.forEach(function (e, i) {
+        var a = nodes[e.from], b = nodes[e.to], flip = e.from > e.to ? -1 : 1;  // same side for the same order
+        var off = (i - (list.length - 1) / 2) * 44 * flip;
+        var dx = b.x - a.x, dy = b.y - a.y, len = Math.sqrt(dx * dx + dy * dy) || 1;
+        e.mid = { x: (a.x + b.x) / 2 - dy / len * off, y: (a.y + b.y) / 2 + dx / len * off };
+        e.ctrl = { x: (a.x + b.x) / 2 - dy / len * off * 2, y: (a.y + b.y) / 2 + dx / len * off * 2 };
+        e.curved = off !== 0;
+      });
+    });
+    edges.forEach(function (e) {
+      var a = nodes[e.from], b = nodes[e.to], c = e.ctrl;
+      e.el = el("g", { class: "dg-edge" + (e.dashed ? " dashed" : ""), "data-i": e.i }, gEdges);
+      var end = e.arrow ? edgePoint(b, e.curved ? c : a) : b;
+      var d = e.curved ? "M" + a.x + "," + a.y + "Q" + c.x + "," + c.y + " " + end.x + "," + end.y
+                       : "M" + a.x + "," + a.y + "L" + end.x + "," + end.y;
+      el("path", { class: "ln", d: d }, e.el);
+      el("path", { class: "hit", d: d }, e.el);
+      if (e.arrow) {
+        var from = e.curved ? c : a, dx = end.x - from.x, dy = end.y - from.y, len = Math.sqrt(dx * dx + dy * dy) || 1, ux = dx / len, uy = dy / len;
+        var s = 10;
+        el("path", { class: "arr", d: "M" + end.x + "," + end.y +
+          "L" + (end.x - ux * s - uy * s * 0.55) + "," + (end.y - uy * s + ux * s * 0.55) +
+          "L" + (end.x - ux * s + uy * s * 0.55) + "," + (end.y - uy * s - ux * s * 0.55) + "Z" }, e.el);
+      }
+      e.labels = [];
+      if (e.label) {
+        var lw = tw(e.label, FONT.mid, 0.02) + 18, mx = e.mid.x, my = e.mid.y;
+        var g = el("g", { class: "dg-mid" }, gLabels);
+        el("rect", { x: mx - lw / 2, y: my - 10, width: lw, height: 20, rx: 10 }, g);
+        el("text", { x: mx, y: my, "text-anchor": "middle", "dominant-baseline": "central" }, g, e.label);
+        e.labels.push(g); grow(mx - lw / 2, my - 10, mx + lw / 2, my + 10);
+      }
+      [[e.src, a, e.curved ? c : b], [e.dst, b, e.curved ? c : a]].forEach(function (s) {
+        var parts = endParts(s[0]);
+        if (!parts.length) return;
+        var lines = [];
+        if (parts.length === 1) {
+          if (parts[0].ifc) lines.push([{ t: parts[0].ifc, c: "if" }]);
+          if (parts[0].ip) lines.push([{ t: parts[0].ip, c: "ip" }]);
+        } else parts.forEach(function (p) {
+          lines.push([{ t: p.ifc + (p.ifc && p.ip ? " " : ""), c: "if" }, { t: p.ip, c: "ip" }].filter(function (x) { return x.t; }));
+        });
+        var w = 0;
+        lines.forEach(function (ln) {
+          w = Math.max(w, ln.reduce(function (sum, x) { return sum + tw(x.t, x.c === "if" ? FONT.ifc : FONT.ip); }, 0));
+        });
+        w += 14;
+        var h = lines.length * 14 + 8, p = outside(s[1], s[2], w, h, 7);
+        var g = el("g", { class: "dg-chip", style: "--c:" + s[1].color }, gLabels);
+        el("rect", { x: p.x - w / 2, y: p.y - h / 2, width: w, height: h, rx: 6 }, g);
+        var top = p.y - (lines.length - 1) * 7;
+        lines.forEach(function (ln, k) {
+          var t = el("text", { x: p.x, y: top + k * 14, "text-anchor": "middle", "dominant-baseline": "central" }, g);
+          ln.forEach(function (x) { el("tspan", { class: x.c }, t, x.t); });
+        });
+        e.labels.push(g); grow(p.x - w / 2, p.y - h / 2, p.x + w / 2, p.y + h / 2);
+      });
+    });
+
+    // Device cards
+    order.forEach(function (id) {
+      var n = nodes[id];
+      if (n.group) return;
+      n.el = el("g", { class: "dg-node", style: "--c:" + n.color, "data-id": id, tabindex: 0, role: "button",
+                       "aria-label": n.name + (n.sub ? ", " + n.sub : "") }, gNodes);
+      var rx = n.type === "internet" ? n.h / 2 : 10;
+      el("rect", { class: "card", x: n.x - n.w / 2, y: n.y - n.h / 2, width: n.w, height: n.h, rx: rx }, n.el);
+      var rows = [];
+      if (n.tag) rows.push(["tag", n.tag, 9, 9]);
+      rows.push(["name", n.name, 14, 17]);
+      if (n.sub) rows.push(["sub", n.sub, 11.5, 15]);
+      var total = rows.reduce(function (s, r) { return s + r[3]; }, 0), y = n.y - total / 2;
+      rows.forEach(function (r) {
+        el("text", { class: r[0], x: n.x, y: y + r[3] / 2, "text-anchor": "middle", "dominant-baseline": "central" }, n.el, r[1]);
+        y += r[3];
+      });
+      grow(n.x - n.w / 2, n.y - n.h / 2, n.x + n.w / 2, n.y + n.h / 2);
+    });
+
+    // View: translate + scale of the drawing, in screen pixels.
+    var t = { k: 1, x: 0, y: 0 };
+    function apply() {
+      var tr = "translate(" + t.x + "," + t.y + ") scale(" + t.k + ")";
+      root.setAttribute("transform", tr);
+      pat.setAttribute("patternTransform", tr);
+    }
+    function size() { return { w: host.clientWidth, h: host.clientHeight }; }
+    var view = {
+      svg: svg, nodes: nodes, edges: edges, bounds: bounds,
+      zoom: function () { return t.k; },
+      fit: function () {  // fit the box, never above 100%
+        var s = size(), bw = bounds.x2 - bounds.x1, bh = bounds.y2 - bounds.y1, pad = 40;
+        if (!s.w || !s.h) return;
+        t.k = Math.min(1, (s.w - 2 * pad) / bw, (s.h - 2 * pad) / bh);
+        t.x = (s.w - bw * t.k) / 2 - bounds.x1 * t.k;
+        t.y = (s.h - bh * t.k) / 2 - bounds.y1 * t.k;
+        apply();
+      },
+      zoomAt: function (k, px, py) {
+        k = Math.max(0.3, Math.min(3, k));
+        t.x = px - (px - t.x) * k / t.k; t.y = py - (py - t.y) * k / t.k; t.k = k;
+        apply();
+      },
+      panBy: function (dx, dy) { t.x += dx; t.y += dy; apply(); },
+      // Rendered box of a node, in pixels inside the canvas.
+      screenBox: function (n) {
+        return { x1: t.x + (n.x - n.w / 2) * t.k, y1: t.y + (n.y - n.h / 2) * t.k,
+                 x2: t.x + (n.x + n.w / 2) * t.k, y2: t.y + (n.y + n.h / 2) * t.k };
+      },
+      // Smoothly center a set of nodes.
+      center: function (list) {
+        var cx = 0, cy = 0;
+        list.forEach(function (n) { cx += n.x; cy += n.y; });
+        cx /= list.length; cy /= list.length;
+        var s = size(), x0 = t.x, y0 = t.y, x1 = s.w / 2 - cx * t.k, y1 = s.h / 2 - cy * t.k, start = null;
+        function step(ts) {
+          start = start || ts;
+          var p = Math.min(1, (ts - start) / 250), e = p * (2 - p);
+          t.x = x0 + (x1 - x0) * e; t.y = y0 + (y1 - y0) * e; apply();
+          if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      }
+    };
+
+    // Highlight: one device shows it and its links (in its color); several show
+    // them and the links between them. Everything else fades.
+    view.highlight = function (ids) {
+      var on = {}, keepEdge = {};
+      ids.forEach(function (id) {
+        on[id] = true;
+        (kids[id] || []).forEach(function (k) { on[k] = true; });
+      });
+      var single = ids.length === 1 && !nodes[ids[0]].group;
+      edges.forEach(function (e) {
+        var hit = single ? (on[e.from] || on[e.to]) : (on[e.from] && on[e.to]);
+        if (hit) keepEdge[e.i] = true;
+      });
+      var show = {};
+      Object.keys(on).forEach(function (id) { show[id] = true; });
+      if (single) edges.forEach(function (e) { if (keepEdge[e.i]) { show[e.from] = true; show[e.to] = true; } });
+      order.forEach(function (id) {
+        var n = nodes[id];
+        if (n.group) {
+          var inside = order.some(function (k) { var p = nodes[k].parent; while (p) { if (p === id && show[k]) return true; p = nodes[p].parent; } return false; });
+          n.el.classList.toggle("faded", !inside && !show[id]);
+        } else {
+          n.el.classList.toggle("faded", !show[id]);
+          n.el.classList.toggle("hl", !!on[id]);
+        }
+      });
+      edges.forEach(function (e) {
+        var hit = !!keepEdge[e.i];
+        e.el.classList.toggle("faded", !hit);
+        e.el.classList.toggle("hl", hit);
+        e.el.style.setProperty("--hc", single ? nodes[ids[0]].color : "var(--accent)");
+        e.labels.forEach(function (l) { l.classList.toggle("faded", !hit); });
+      });
+    };
+    view.clear = function () {
+      svg.querySelectorAll(".faded, .hl").forEach(function (x) { x.classList.remove("faded", "hl"); });
+    };
+    view.select = function (ids) {
+      svg.querySelectorAll(".sel").forEach(function (x) { x.classList.remove("sel"); });
+      ids.forEach(function (id) { if (nodes[id] && nodes[id].el && !nodes[id].group) nodes[id].el.classList.add("sel"); });
+    };
+    return view;
+  }
+
+  window.mdDiagram = { make: make };
+  if (typeof document === "undefined" || !document.querySelectorAll) return;
+
+  // Card sizes are measured with the embedded fonts, so wait for them first.
+  var fontsReady = document.fonts && document.fonts.load ? Promise.race([
+    Promise.all([FONT.name, FONT.sub, FONT.tag, FONT.ifc, FONT.ip].map(function (f) {
+      return document.fonts.load(f).catch(function () {});
+    })),
+    new Promise(function (r) { setTimeout(r, 1500); })
+  ]) : Promise.resolve();
+  fontsReady.then(start);
+
+  function start() {
+    function esc(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+    var store = {
+      get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+      set: function (k, v) {
+        try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {}
+      }
+    };
+    var PIN_KEY = "md2html.pin:" + location.pathname;
+    var IP = /(?<![\d.])\d{1,3}(?:\.\d{1,3}){3}(?!\d|\.\d)/g;
+    var diagrams = [], pinnedD = null;
+    function wide() { return window.matchMedia("(min-width: 1100px)").matches; }
+
+    (function () {
+      var w = parseInt(store.get("md2html.pinW"), 10), h = parseInt(store.get("md2html.pinH"), 10);
+      var root = document.documentElement.style;
+      if (w > 0) root.setProperty("--dg-pin-w", "min(" + w + "px, 75vw)");
+      if (h > 0) root.setProperty("--dg-pin-h", "min(" + h + "px, 75vh)");
+    })();
+
+    function keepPlace(fn, anchor) {
+      var top = anchor ? anchor.getBoundingClientRect().top : 0, kids = document.body.children;
+      for (var i = 0; !anchor && i < kids.length; i++) {
+        var el = kids[i], cs = getComputedStyle(el);
+        if (cs.position === "fixed" || cs.display === "none" || el.classList.contains("dg-figure")) continue;
+        var r = el.getBoundingClientRect();
+        if (r.height && r.bottom > 0) { anchor = el; top = r.top; break; }
+      }
+      fn();
+      if (anchor) window.scrollBy({ top: anchor.getBoundingClientRect().top - top, behavior: "instant" });
+    }
+    function placeholder(text, label, fn) {
+      var ph = document.createElement("div"), b = document.createElement("button");
+      ph.className = "dg-ph";
+      ph.appendChild(document.createElement("span")).textContent = text;
+      b.textContent = label;
+      b.addEventListener("click", fn);
+      ph.appendChild(b);
+      return ph;
+    }
+
+    document.querySelectorAll(".dg-figure").forEach(function (fig, index) {
+      var m = JSON.parse(fig.querySelector('script[type="application/json"]').textContent);
+      var box = fig.querySelector(".dg-canvas");
+      box.style.height = (m.height || 480) + "px";  // temporary, autoHeight() sets the real one
+      var v = make(m, box, "dg" + index);
+      var home = document.createComment("dg-figure");
+      fig.parentNode.insertBefore(home, fig);
+      var panel = fig.querySelector(".dg-panel");
+      var nodes = v.nodes;
+
+      function show(kind, item) {
+        var rows = "", links = "", one = function (s) { return s.replace(/\n/g, " "); };
+        Object.keys(item.details).forEach(function (k) {
+          rows += "<dt>" + esc(k) + "</dt><dd>" + esc(String(item.details[k])) + "</dd>";
+        });
+        if (kind === "edge") {
+          [["from", "src"], ["to", "dst"]].forEach(function (p) {
+            var txt = endText(item[p[1]]);
+            links += "<dt>" + esc(nodes[item[p[0]]].name) + "</dt><dd>" + (txt ? esc(txt) : "&ndash;") + "</dd>";
+          });
+        } else {
+          v.edges.forEach(function (e) {
+            if (e.from !== item.id && e.to !== item.id) return;
+            var mine = e.from === item.id, other = nodes[mine ? e.to : e.from];
+            var here = endText(mine ? e.src : e.dst), there = endText(mine ? e.dst : e.src);
+            links += "<dt>" + (here ? esc(one(here)) : "&ndash;") + "</dt><dd>&rarr; " + esc(other.name) +
+                     (there ? ' <span class="dg-far">' + esc(one(there)) + "</span>" : "") + "</dd>";
+          });
+          if (item.group) {
+            var members = Object.keys(nodes).filter(function (k) { return nodes[k].parent === item.id; }).map(function (k) { return nodes[k].name; });
+            rows += "<dt>Members</dt><dd>" + esc(members.join(", ")) + "</dd>";
+          }
+        }
+        var accent = kind === "edge" ? "var(--accent)" : item.color;
+        panel.style.setProperty("--dg-accent", accent);
+        panel.innerHTML = "<h4>" + esc(item.name) + "</h4>" +
+          (item.sub ? '<div class="dg-sub">' + esc(item.sub) + "</div>" : "") +
+          (rows ? "<dl>" + rows + "</dl>" : (links ? "" : '<div class="dg-sub">No details.</div>')) +
+          (links ? '<div class="dg-sec">' + (kind === "edge" ? "Ends" : "Links") + '</div><dl class="dg-links">' + links + "</dl>" : "");
+        panel.hidden = false;
+      }
+
+      function clear() { v.clear(); markRefs(null); }
+
+      // Click a device, a VLAN box or a link for its details; empty space closes them.
+      v.svg.addEventListener("click", function (e) {
+        var n = e.target.closest(".dg-node, .dg-group"), ed = e.target.closest(".dg-edge");
+        if (n) { var item = nodes[n.getAttribute("data-id")]; v.select(item.group ? [] : [item.id]); show("node", item); }
+        else if (ed) { v.select([]); show("edge", v.edges[+ed.getAttribute("data-i")]); }
+        else { panel.hidden = true; v.select([]); }
+      });
+      v.svg.addEventListener("keydown", function (e) {
+        var n = e.target.closest && e.target.closest(".dg-node");
+        if (n && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); v.select([n.getAttribute("data-id")]); show("node", nodes[n.getAttribute("data-id")]); }
+      });
+      Object.keys(nodes).forEach(function (id) {
+        var n = nodes[id];
+        if (n.group) return;
+        n.el.addEventListener("mouseenter", function () { v.highlight([id]); markRefs(d, id); });
+        n.el.addEventListener("mouseleave", clear);
+        n.el.addEventListener("focus", function () { v.highlight([id]); });
+        n.el.addEventListener("blur", clear);
+      });
+
+      // Ctrl + wheel zooms (trackpad pinch sends ctrlKey too). A plain wheel
+      // scrolls the page and shows a hint; expanded or popped out it zooms.
+      var mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+      var wheelTip = document.createElement("div"), wheelTimer;
+      wheelTip.className = "dg-wheel-tip";
+      wheelTip.textContent = (mac ? "⌘" : "Ctrl") + " + scroll to zoom";
+      fig.appendChild(wheelTip);
+      box.addEventListener("wheel", function (e) {
+        var own = fig.classList.contains("dg-full") || fig.classList.contains("dg-popped");
+        if (!own && !e.ctrlKey && !e.metaKey) {
+          wheelTip.classList.add("on");
+          clearTimeout(wheelTimer);
+          wheelTimer = setTimeout(function () { wheelTip.classList.remove("on"); }, 1200);
+          return;
+        }
+        wheelTip.classList.remove("on");
+        e.preventDefault();
+        var dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY, r = box.getBoundingClientRect();
+        v.zoomAt(v.zoom() * Math.pow(1.0018, -dy), e.clientX - r.left, e.clientY - r.top);
+      }, { passive: false });
+
+      // Right-drag pans (mouse). Touch: one finger pans, two fingers pinch.
+      var drag = null, touches = {};
+      function touchList() { return Object.keys(touches).map(function (k) { return touches[k]; }); }
+      box.addEventListener("pointerdown", function (e) {
+        if (e.pointerType === "mouse") {
+          if (e.button !== 2) return;
+          drag = { x: e.clientX, y: e.clientY };
+          box.setPointerCapture(e.pointerId);
+          box.style.cursor = "grabbing";
+          return;
+        }
+        touches[e.pointerId] = { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, moved: false };
+      });
+      box.addEventListener("pointermove", function (e) {
+        if (drag && box.hasPointerCapture(e.pointerId)) {
+          v.panBy(e.clientX - drag.x, e.clientY - drag.y);
+          drag = { x: e.clientX, y: e.clientY };
+          return;
+        }
+        var p = touches[e.pointerId];
+        if (!p) return;
+        var list = touchList();
+        if (list.length === 1) {
+          // Capture only once it is a real drag, so a tap still clicks the device.
+          if (!p.moved && Math.abs(e.clientX - p.x0) + Math.abs(e.clientY - p.y0) > 6) { p.moved = true; box.setPointerCapture(e.pointerId); }
+          if (p.moved) v.panBy(e.clientX - p.x, e.clientY - p.y);
+        } else if (list.length === 2) {
+          var o = list[0] === p ? list[1] : list[0], r = box.getBoundingClientRect();
+          var before = Math.hypot(p.x - o.x, p.y - o.y), after = Math.hypot(e.clientX - o.x, e.clientY - o.y);
+          if (before > 0) v.zoomAt(v.zoom() * after / before, (e.clientX + o.x) / 2 - r.left, (e.clientY + o.y) / 2 - r.top);
+          p.moved = true;
+        }
+        p.x = e.clientX; p.y = e.clientY;
+      });
+      function up(e) {
+        if (e.pointerType === "mouse") { if (drag) { drag = null; box.style.cursor = ""; } return; }
+        delete touches[e.pointerId];
+      }
+      box.addEventListener("pointerup", up);
+      box.addEventListener("pointercancel", up);
+      box.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+      var pinBtn = fig.querySelector(".dg-pin");
+      var popBtn = fig.querySelector(".dg-pop");
+
+      function docked() {
+        return fig.classList.contains("dg-full") || fig.classList.contains("dg-pinned") ||
+               fig.classList.contains("dg-popped");
+      }
+      // Box height follows the diagram's shape, capped at 90% of the window.
+      function autoHeight() {
+        if (typeof m.height === "number" || docked()) return;
+        var b = v.bounds, bw = b.x2 - b.x1, bh = b.y2 - b.y1;
+        var h = Math.min((box.clientWidth - 80) * bh / bw, bh) + 80;
+        box.style.height = Math.round(Math.max(320, Math.min(h, window.innerHeight * 0.9))) + "px";
+      }
+      function refit() {
+        if (!docked()) { if (typeof m.height === "number") box.style.height = m.height + "px"; autoHeight(); }
+        v.fit();
+      }
+      refit();
+      window.addEventListener("resize", refit);
+
+      var expandBtn = fig.querySelector(".dg-expand");
+      function setExpanded(on) {
+        fig.classList.toggle("dg-full", on);
+        expandBtn.textContent = on ? "Close" : "Expand";
+        document.documentElement.style.overflow = on ? "hidden" : "";
+        setTimeout(refit, 0);
+      }
+
+      var pinPh = null;
+      function setPinned(on, anchor) {
+        if (on === (pinnedD === d) || (on && popWin)) return;
+        if (on && pinnedD) pinnedD.pin(false);
+        keepPlace(function () {
+          if (on) {
+            pinPh = placeholder("Pinned" + (m.title ? ": " + m.title : " diagram"), "Unpin",
+                                function () { setPinned(false); });
+            fig.parentNode.insertBefore(pinPh, fig);
+          } else if (pinPh) { pinPh.remove(); pinPh = null; }
+          fig.classList.toggle("dg-pinned", on);
+          document.body.classList.toggle("dg-pin-open", on);
+        }, anchor);
+        pinnedD = on ? d : null;
+        pinBtn.textContent = on ? "Unpin" : "Pin";
+        pinBtn.classList.toggle("on", on);
+        store.set(PIN_KEY, on ? String(index) : null);
+        setTimeout(refit, 0);
+      }
+
+      var grip = document.createElement("div");
+      grip.className = "dg-grip";
+      grip.title = "Drag to resize";
+      fig.appendChild(grip);
+      grip.addEventListener("pointerdown", function (e) {
+        e.preventDefault();
+        grip.setPointerCapture(e.pointerId);
+        grip.classList.add("drag");
+      });
+      grip.addEventListener("pointermove", function (e) {
+        if (!grip.hasPointerCapture(e.pointerId)) return;
+        var root = document.documentElement.style;
+        if (wide()) {
+          var w = Math.round(Math.max(320, Math.min(window.innerWidth - e.clientX, window.innerWidth * 0.75)));
+          root.setProperty("--dg-pin-w", w + "px"); store.set("md2html.pinW", String(w));
+        } else {
+          var h = Math.round(Math.max(160, Math.min(e.clientY, window.innerHeight * 0.75)));
+          root.setProperty("--dg-pin-h", h + "px"); store.set("md2html.pinH", String(h));
+        }
+        v.fit();
+      });
+      grip.addEventListener("lostpointercapture", function () { grip.classList.remove("drag"); });
+
+      // Pop out: Picture-in-Picture window where the browser has one, a pop-up otherwise.
+      var popWin = null, popPh = null;
+      function popOut() {
+        if (popWin) { dock(); return; }
+        if (pinnedD === d) setPinned(false);
+        if (fig.classList.contains("dg-full")) setExpanded(false);
+        if (window.documentPictureInPicture) {
+          documentPictureInPicture.requestWindow({ width: 960, height: 640 })
+            .then(attach, function () { attach(openWin()); });
+        } else attach(openWin());
+      }
+      function openWin() { return window.open("", "", "popup,width=1000,height=700"); }
+      function attach(w) {
+        if (!w) return;
+        popWin = w;
+        var doc = w.document;
+        doc.title = m.title || document.title;
+        document.querySelectorAll('style, link[rel="stylesheet"]').forEach(function (s) {
+          doc.head.appendChild(s.cloneNode(true));
+        });
+        doc.body.style.cssText = "margin:0;padding:0;max-width:none;background:var(--dg-bg);overflow:hidden";
+        keepPlace(function () {
+          popPh = placeholder((m.title ? m.title + ": " : "") + "open in its own window", "Bring back", dock);
+          fig.parentNode.insertBefore(popPh, fig);
+          doc.body.appendChild(fig);
+        });
+        fig.classList.add("dg-popped");
+        popBtn.textContent = "Dock";
+        popBtn.title = "Put the diagram back in the page";
+        w.addEventListener("resize", function () { v.fit(); });
+        w.addEventListener("pagehide", dock);
+        setTimeout(function () { v.fit(); }, 50);
+      }
+      function dock() {
+        if (!popWin) return;
+        var w = popWin;
+        popWin = null;
+        keepPlace(function () {
+          popPh.parentNode.insertBefore(fig, popPh);
+          popPh.remove(); popPh = null;
+        });
+        fig.classList.remove("dg-popped");
+        popBtn.textContent = "Pop out";
+        popBtn.title = "Open the diagram in its own window";
+        setTimeout(refit, 0);
+        try { if (!w.closed) w.close(); } catch (e) {}
+      }
+      window.addEventListener("pagehide", function () { if (popWin) popWin.close(); });
+
+      // Text references: the diagram resolves [x]{node=id} and auto-linked IPs.
+      // An IP belongs to a device when it is in its "sub", on its end of a link,
+      // or written as a CIDR (10.10.10.1/24). A plain mention in details, like
+      // "Gateway: 10.10.10.1", only counts if nothing stronger claims it.
+      // Network addresses (10.0.12.0/30) are not devices and are skipped.
+      var own = {}, weak = {};
+      function isNetwork(ip, len) {
+        if (!(len < 31)) return false;
+        var n = ip.split(".").reduce(function (a, o) { return a * 256 + Number(o); }, 0);
+        return n % Math.pow(2, 32 - len) === 0;
+      }
+      function addIps(s, id, strong) {
+        String(s).replace(/(?<![\d.])(\d{1,3}(?:\.\d{1,3}){3})(?:\/(\d{1,2}))?(?!\d|\.\d)/g, function (all, ip, len) {
+          if (len !== undefined && isNetwork(ip, Number(len))) return all;
+          var map = strong || len !== undefined ? own : weak;
+          (map[ip] = map[ip] || {})[id] = true;
+          return all;
+        });
+      }
+      (m.nodes || []).forEach(function (n) {
+        addIps(n.sub || "", n.id, true);
+        Object.keys(n.details || {}).forEach(function (k) { addIps(n.details[k], n.id, false); });
+      });
+      (m.edges || []).forEach(function (e) {
+        if (e.src) addIps(e.src, e.from, true);
+        if (e.dst) addIps(e.dst, e.to, true);
+      });
+
+      function reveal(list) {
+        var W = box.clientWidth, H = box.clientHeight;
+        var out = list.some(function (n) { var b = v.screenBox(n); return b.x1 < 0 || b.y1 < 0 || b.x2 > W || b.y2 > H; });
+        if (out) v.center(list);
+      }
+      function onScreen() {
+        if (popWin || pinnedD === d) return true;
+        var r = fig.getBoundingClientRect();
+        return r.bottom > 120 && r.top < window.innerHeight - 120;
+      }
+
+      fig.querySelector(".dg-tools").addEventListener("click", function (e) {
+        var a = e.target.getAttribute("data-a");
+        if (a === "expand") setExpanded(!fig.classList.contains("dg-full"));
+        if (a === "pin") setPinned(pinnedD !== d);
+        if (a === "pop") popOut();
+        if (a === "fit") v.fit();
+        if (a === "in") v.zoomAt(v.zoom() * 1.25, box.clientWidth / 2, box.clientHeight / 2);
+        if (a === "out") v.zoomAt(v.zoom() * 0.8, box.clientWidth / 2, box.clientHeight / 2);
+      });
+
+      var d = {
+        fig: fig, view: v, home: home, autolink: m.autolink === true,
+        pin: setPinned, expand: setExpanded,
+        highlight: function (ids) { v.highlight(ids); }, clear: clear,
+        has: function (id) { return !!nodes[id]; },
+        info: function (id) { var n = nodes[id]; return { name: n.name, sub: n.sub, color: n.color }; },
+        active: function () { return !!popWin || pinnedD === d; },
+        ipNodes: function (ip) {
+          var k = Object.keys(own[ip] || weak[ip] || {});
+          return k.length === 1 ? k : null;
+        },
+        select: function (ids, from) {
+          var list = ids.map(function (id) { return nodes[id]; }).filter(Boolean);
+          if (!list.length) return;
+          if (!onScreen()) setPinned(true, from);
+          v.select(ids);
+          show("node", list[0]);
+          setTimeout(function () { reveal(list); }, 60);
+        }
+      };
+      diagrams.push(d);
+    });
+
+    window.mdDiagram.diagrams = diagrams;
+    if (!diagrams.length) return;
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape") return;
+      var full = diagrams.filter(function (d) { return d.fig.classList.contains("dg-full"); })[0];
+      if (full) full.expand(false);
+      else if (pinnedD) pinnedD.pin(false);
+    });
+
+    function idsFor(ref, d) {
+      var node = ref.getAttribute("data-node");
+      if (node) {
+        var ids = node.trim().split(/\s+/);
+        return ids.every(function (id) { return d.has(id); }) ? ids : null;
+      }
+      var ip = ref.getAttribute("data-ip");
+      return ip && d.autolink ? d.ipNodes(ip) : null;
+    }
+    function resolve(ref) {
+      var cands = diagrams.filter(function (d) { return idsFor(ref, d); });
+      if (!cands.length) return null;
+      var pick = cands.filter(function (d) { return d.active(); })[0];
+      if (!pick) cands.forEach(function (d) {
+        if (d.home.compareDocumentPosition(ref) & Node.DOCUMENT_POSITION_FOLLOWING) pick = d;
+      });
+      pick = pick || cands[0];
+      return { d: pick, ids: idsFor(ref, pick) };
+    }
+    function markRefs(d, id) {
+      document.querySelectorAll(".dg-ref.dg-ref-hl").forEach(function (x) { x.classList.remove("dg-ref-hl"); });
+      if (!d) return;
+      document.querySelectorAll(".dg-ref").forEach(function (ref) {
+        var r = resolve(ref);
+        if (r && r.d === d && r.ids.indexOf(id) >= 0) ref.classList.add("dg-ref-hl");
+      });
+    }
+
+    if (diagrams.some(function (d) { return d.autolink; })) {
+      var skip = ".dg-figure, .dg-ref, nav#TOC, a, button, script, style, textarea, .doc-footer, .dg-ph";
+      var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), hits = [], t;
+      while ((t = walker.nextNode())) {
+        IP.lastIndex = 0;
+        if (IP.test(t.nodeValue) && t.parentElement && !t.parentElement.closest(skip)) hits.push(t);
+      }
+      hits.forEach(function (t) {
+        var text = t.nodeValue, frag = document.createDocumentFragment(), last = 0, any = false;
+        text.replace(IP, function (ip, at) {
+          if (!diagrams.some(function (d) { return d.autolink && d.ipNodes(ip); })) return ip;
+          frag.appendChild(document.createTextNode(text.slice(last, at)));
+          var s = document.createElement("span");
+          s.className = "dg-ref";
+          s.setAttribute("data-ip", ip);
+          s.textContent = ip;
+          frag.appendChild(s);
+          last = at + ip.length; any = true;
+          return ip;
+        });
+        if (!any) return;
+        frag.appendChild(document.createTextNode(text.slice(last)));
+        t.parentNode.replaceChild(frag, t);
+      });
+    }
+    document.querySelectorAll(".dg-ref[data-node]").forEach(function (ref) { ref.tabIndex = 0; });
+
+    var tip = document.createElement("div");
+    tip.className = "dg-tip";
+    tip.hidden = true;
+    document.body.appendChild(tip);
+    var hot = null;
+    function enter(ref) {
+      if (hot && hot.ref === ref) return;
+      leave();
+      var r = resolve(ref);
+      if (!r) return;
+      hot = { ref: ref, d: r.d };
+      r.d.highlight(r.ids);
+      var html = "";
+      r.ids.forEach(function (id) {
+        var data = r.d.info(id);
+        html += (html ? "<br>" : "") + "<b>" + esc(data.name) + "</b>" + (data.sub ? " <span>" + esc(data.sub) + "</span>" : "");
+        if (!tip.style.getPropertyValue("--dg-accent")) tip.style.setProperty("--dg-accent", data.color);
+      });
+      tip.innerHTML = html;
+      tip.hidden = false;
+      var rr = ref.getBoundingClientRect();
+      var x = Math.max(8, Math.min(rr.left, window.innerWidth - tip.offsetWidth - 8));
+      var y = rr.bottom + 6;
+      if (y + tip.offsetHeight > window.innerHeight - 4) y = rr.top - tip.offsetHeight - 6;
+      tip.style.left = x + "px";
+      tip.style.top = y + "px";
+    }
+    function leave() {
+      if (hot) hot.d.clear();
+      hot = null;
+      tip.hidden = true;
+      tip.style.removeProperty("--dg-accent");
+    }
+    function refOf(e) { return e.target && e.target.closest ? e.target.closest(".dg-ref") : null; }
+    document.addEventListener("mouseover", function (e) { var ref = refOf(e); if (ref) enter(ref); });
+    document.addEventListener("mouseout", function (e) {
+      var ref = refOf(e);
+      if (ref && !ref.contains(e.relatedTarget)) leave();
+    });
+    document.addEventListener("focusin", function (e) { var ref = refOf(e); if (ref) enter(ref); });
+    document.addEventListener("focusout", function (e) { if (refOf(e)) leave(); });
+    window.addEventListener("scroll", function () { if (hot) leave(); }, { passive: true });
+    function activate(ref) {
+      var r = resolve(ref);
+      if (r) r.d.select(r.ids, ref);
+    }
+    document.addEventListener("click", function (e) { var ref = refOf(e); if (ref) activate(ref); });
+    document.addEventListener("keydown", function (e) {
+      var ref = refOf(e);
+      if (ref && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); activate(ref); }
+    });
+
+    var saved = parseInt(store.get(PIN_KEY), 10);
+    if (diagrams[saved]) diagrams[saved].pin(true);
+  }
+})();
+</script>

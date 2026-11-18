@@ -11,7 +11,7 @@ if ! command -v pandoc >/dev/null 2>&1; then
   exit 1
 fi
 
-# cytoscape.lua needs pandoc.json, added in pandoc 3.1.1.
+# diagram.lua needs pandoc.json, added in pandoc 3.1.1.
 PANDOC_VER="$(pandoc --version | head -1 | awk '{print $2}')"
 if [ "$(printf '%s\n3.1.1\n' "$PANDOC_VER" | sort -V | head -1)" != "3.1.1" ]; then
   echo "Error: pandoc $PANDOC_VER is too old; 3.1.1 or newer is required" >&2
@@ -23,11 +23,11 @@ if [ $# -lt 1 ] || [ ! -f "$1" ]; then
   exit 1
 fi
 
-export CY_DIR="$TOOLKIT"   # cytoscape.lua reads vendor/cytoscape from here
+export MD2HTML_DIR="$TOOLKIT"   # diagram.lua reads diagram-runtime.html from here
 
 # On Windows (Git Bash) pandoc can't read POSIX-style paths, so convert this one.
 if command -v cygpath >/dev/null 2>&1; then
-  export CY_DIR="$(cygpath -m "$CY_DIR")"
+  export MD2HTML_DIR="$(cygpath -m "$MD2HTML_DIR")"
 fi
 
 SRC="$1"
@@ -51,7 +51,7 @@ printf '<footer class="doc-footer">Generated %s from %s</footer>\n' \
 
 pandoc "$SRC" \
   --standalone --embed-resources \
-  --lua-filter "$TOOLKIT/cytoscape.lua" \
+  --lua-filter "$TOOLKIT/diagram.lua" \
   --lua-filter "$TOOLKIT/default-lang.lua" \
   --css "$TOOLKIT/doc-style.css" \
   --include-after-body "$TOOLKIT/toc-sidebar.html" \
